@@ -63,6 +63,9 @@ for (i in 1:nreps) {
     xx@realised.birth[1,] <- rmultinom(1, xx[1], prob.maternal.age)
     xx@realised.birth[2,] <- rmultinom(1, xx[2], prob.maternal.age)
     
+    # data.frame to record kills for one rep
+    kill.summary <- data.frame(year = numeric(), age = character(), waiting.time = numeric())
+    
     # loop forward over years
     for (y in 2:nyr.proj) {
         
@@ -76,6 +79,42 @@ for (i in 1:nreps) {
         # approximately equal to param.sample)
         param.sample[1:14] <- exp(log(param.sample[1:14]) +  sigma * sdev - sigma^2/2)
         param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
+        
+        # quota setting function
+        quota <- 20
+                
+        ## kill
+        kills <- vector('list', quota)
+        for(k in 1:quota) {
+          
+          # stochastic kill with associated
+          # waiting time
+          kills[[k]] <- kill(xx)
+          
+          # remove individual from population
+          # numbers vector
+          xx <- xx - kills[[k]]$kill.at.age
+          
+          # if you kill a cub or juvenile then this will
+          # have an effect on the average cub/juvenile survival
+          # rate because of the maternal age effect. Because the kill
+          # function does not descriminate the maternal age when
+          # hunting cubs/juveniles (why should it?) we just remove
+          # them at random [NB over lots of iterations this is
+          # the same as doing nothing because the average survival
+          # will be unchanged]
+          if(kills[[k]]$kill.at.age[1]) {
+            kill.prob <- xx@realised.birth[1,]/sum(xx@realised.birth[1,])
+            xx@realised.birth[1,] <- xx@realised.birth[1,] - rmultinom(1, 1, kill.prob)
+          }
+          if(kills[[k]]$kill.at.age[2]) {
+            kill.prob <- xx@realised.birth[2,]/sum(xx@realised.birth[2,])
+            xx@realised.birth[2,] <- xx@realised.birth[2,] - rmultinom(1, 1, kill.prob)
+          }
+          
+          # update summary data.frame
+          kill.summary <- rbind(kill.summary, data.frame(year = y, age = xx@names[which(kills[[k]]$kill.at.age)], waiting.time = kills[[k]]$waiting.time))
+        }
         
         # calculate stochastic survival
         xx <- survival(xx)
