@@ -1,3 +1,15 @@
+#{{{ quota setting function
+# generic function
+"quota.set" <- function(x, ...) UseMethod("quota.set")
+
+# method
+"quota.leopard" <- function(x = "quota", y = "leopard") {
+  
+ 
+}
+#}}}
+
+
 
 #{{{ kill function
 # generic function

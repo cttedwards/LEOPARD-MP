@@ -15,7 +15,7 @@ source('params.R')
 # dimensions
 
 ## number of monte carlo samples
-nreps <- 200
+nreps <- 100
 ## number of projection years
 nyr.proj <- 50
 
@@ -82,7 +82,7 @@ for (i in 1:nreps) {
         
         # quota setting function
         quota <- 20
-                
+        
         ## kill
         kills <- vector('list', quota)
         for(k in 1:quota) {
