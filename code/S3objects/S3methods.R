@@ -1,9 +1,5 @@
 #{{{ quota setting function
-# generic function
-"quota" <- function(x, ...) UseMethod("quota")
-
-# method
-"quota.leopard" <- function(x, y) {
+"setquota" <- function(x, y) {
     
     # imagine x is a list containing a vector of days and y contains the tuning parameters 
     dd <- x[['days']]

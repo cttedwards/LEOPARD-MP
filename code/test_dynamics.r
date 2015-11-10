@@ -81,7 +81,7 @@ for (i in 1:nreps) {
         param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
         
         # quota setting function
-        quota <- 20
+        quota <- setquota(x, y)
         
         ## kill
         kills <- vector('list', quota)
