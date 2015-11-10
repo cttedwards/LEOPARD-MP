@@ -1,11 +1,26 @@
 #{{{ quota setting function
 # generic function
-"quota.set" <- function(x, ...) UseMethod("quota.set")
+"quota" <- function(x, ...) UseMethod("quota")
 
 # method
-"quota.leopard" <- function(x = "quota", y = "leopard") {
-  
- 
+"quota.leopard" <- function(x, y) {
+    
+    # imagine x is a list containing a vector of days and y contains the tuning parameters 
+    dd <- x[['days']]
+    cc <- y[['catchability']]
+    hh <- y[['target_harvest']]
+    
+    # gradient from linear regression through days
+    cf <- coef(lm(dd ~ c(1:length(dd))))[2]
+    
+    # predicted waiting time for next year
+    delta <- max(as.numeric(cf + dd[length(dd)]),1)
+    
+    # predicted sustainable quota 
+    quota <- hh / (cc * delta)
+    
+    # return
+    return(quota)
 }
 #}}}
 
