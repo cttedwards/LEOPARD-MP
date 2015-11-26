@@ -54,7 +54,7 @@ for (i in 1:nreps) {
     
     # create new object to hold leopard numbers
     # and vital rates
-    xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19])
+    xx <- newleopard(x.initial, param.sample[1:14], param.sample[15:19])
     
     # assign multiplicative maternal effects
     xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -82,11 +82,11 @@ for (i in 1:nreps) {
         param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
         
         # quota setting function
-        quota <- setquota(x, y)
+        quota <- 10
         
         ## kill
         kills <- vector('list', quota)
-        for(k in 1:quota) {
+        for (k in 1:quota) {
           
           # stochastic kill with associated
           # waiting time
