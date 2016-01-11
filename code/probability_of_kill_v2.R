@@ -40,7 +40,7 @@ for (i in 1:14)
 prob.kill <- sum(binomial.prob.kill.at.age)
 
 # probabiliy of killing at least one on a given day
-prob.kill <- 1 - prod(prob.not.kill.at.age)
+#prob.kill <- 1 - prod(prob.not.kill.at.age)
 
 # expected waiting time from a geometric distribution
 1 / prob.kill
@@ -170,5 +170,37 @@ dfr <- data.frame(catchability = qv, melt(data.frame(prob.kill = pk, number.days
 gg <- ggplot(dfr) + geom_line(aes(catchability, value)) + facet_wrap(~variable, scales = 'free_y')
 print(gg)
 
+# test library
+library(leopard)
+
+
+# for all age classes
+age.structure <- c(0.35,0.2,0.06,0.05,0.04,0.04,0.02,0.1,0.04,0.02,0.01,0.01,0.01,0.05)
+
+xx <- newleopard(2000 * age.structure)
+
+
+for (i in 1:1000) {
+    xx <- newleopard(rbeta(1,  20, 2) * 2000 * age.structure)
+    days[i] <- kill(xx)$waiting.time
+}
+
+# geometric distribution
+hist(days)
+
+
+tmp <- numeric(50)
+days <- numeric(1000)
+
+for (i in 1:1000) {
+    for (j in 1:50) {
+        tmp[j] <- kill(xx)$waiting.time
+    }
+    days[i] <- mean(tmp)
+}
+
+# normal distribution (from CLT)
+hist(days)
+    
 
 
