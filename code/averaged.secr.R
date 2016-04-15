@@ -42,16 +42,16 @@ secr.results.2015 <- subset(secr.results, Year == "2015")
 
 ave.secr <- data.frame(year=c("2013", "2014", "2015"),
                           estimate=c(NA,NA,NA),
-                          sd=c(NA,NA,NA))
+                          se=c(NA,NA,NA))
 
 ave.secr[1,2] <- mean(secr.results.2013$Density, na.rm=T)
-ave.secr[1,3] <- sd(secr.results.2013$Density, na.rm=T)
+ave.secr[1,3] <- sd(secr.results.2013$Density, na.rm=T) / sqrt(4)
 
 ave.secr[2,2] <- mean(secr.results.2014$Density, na.rm=T)
-ave.secr[2,3] <- sd(secr.results.2014$Density, na.rm=T)
+ave.secr[2,3] <- sd(secr.results.2014$Density, na.rm=T) / sqrt(7)
 
 ave.secr[3,2] <- mean(secr.results.2015$Density, na.rm=T)
-ave.secr[3,3] <- sd(secr.results.2015$Density, na.rm=T)
+ave.secr[3,3] <- sd(secr.results.2015$Density, na.rm=T) / sqrt(6)
 
 ave.secr$lambda <- NA
 ave.secr$lambda[1]  <- 1
@@ -64,12 +64,20 @@ ave.secr$lambda[3]  <- ave.secr$estimate[3] / ave.secr$estimate[1]
 
 ave.secr.plot <- ggplot(data=ave.secr, aes(x = as.factor(year), y = estimate)) + 
   geom_line() + 
-  geom_errorbar(width=.1, aes(ymin=estimate-sd, ymax=estimate+sd)) +
+  geom_errorbar(width=.1, aes(ymin=estimate-se, ymax=estimate+se)) +
   geom_point(shape=21,size=3,fill="white") +
   theme_bw() + theme(strip.background = element_rect(fill="white")) +
-  xlab("") + ylab("Density\n per 100km2") + ylim(0,10)
+  xlab("year") + ylab("Density\n per 100km2") + ylim(0,10)
 
 ave.secr.plot  
+
+ave.lambda.plot <- ggplot(data=ave.secr, aes(x = as.factor(year), y = lambda)) + 
+  geom_line() +
+  geom_point(shape=21,size=3,fill="white") +
+  theme_bw() + theme(strip.background = element_rect(fill="white")) +
+  xlab("year") + ylab("lambda") + ylim(0.5,1.25) 
+
+ave.lambda.plot
 
 ##################################################################################################
 # End
