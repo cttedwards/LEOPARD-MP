@@ -43,16 +43,38 @@ number_encounters <- function(nm, nf) {
     return(nencounters)
 }
 
-dfr$value <- apply(dfr, 1, function(x) number_encounters(x[1], x[2]))
+dfr$ne <- apply(dfr, 1, function(x) number_encounters(x[1], x[2]))
 
-# probability of encounter should asymptote at 1 as nencounters approaces its
-# asymptote at nharmes * 2
+ggplot(dfr) + geom_line(aes(nm, ne, col = as.factor(nf))) + ggtitle('number_encounters()')
 
-logistic <- function(x) 1 / (1 + exp(x))
+probability_encounter <- function(nm, nf) {
+    
+    nmales   <- nm
+    nfemales <- nf
+    
+    nencounters <- number_encounters(nmales, nfemales)
+    
+    nharems     <- nfemales / harem_size
+    
+    nencounters_perharem <- nencounters / nharems
+    
+    pencounter <- 1 - exp(-nencounters_perharem)
+    
+    return(pencounter)
+}
+
+dfr$pe <- apply(dfr, 1, function(x) probability_encounter(x[1], x[2]))
+
+ggplot(dfr) + geom_line(aes(nm, pe, col = as.factor(nf))) + ggtitle('probability_encounter()')
+
+
+# probability of encounter should have an origin at zero and asymptote at 1 as nencounters approaces its
+# asymptote at nharems * 2
+
+logistic <- function(x) 1 / (1 + exp(-x))
 
 dfr$value2 <- logistic(dfr$value)
 
-ggplot(dfr) + geom_line(aes(nm, value2, col = as.factor(nf))) + ggtitle('number_encounters()')
 
 # number of harems over the number of encounters
 probability_encounter <- function(nm, nf) {
