@@ -4,7 +4,7 @@
 
 rm(list=ls())
 
-setwd("/Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Database/R_PROJECTS/Survey_Reports/Camera-trapping/code")
+setwd("/Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Database/R_PROJECTS/PhD_Chapter3/MSE_Paper/LEOPARD-MP/code")
 source('utils/saver.r')
 source('utils/loader.r')
 source('utils/reader.r')
@@ -62,14 +62,12 @@ ave.secr$lambda[3]  <- ave.secr$estimate[3] / ave.secr$estimate[1]
 # Plot
 ##################################################################################################
 
-plot(ave.secr$year, ave.secr$estimate)
-
 ave.secr.plot <- ggplot(data=ave.secr, aes(x = as.factor(year), y = estimate)) + 
   geom_line() + 
   geom_errorbar(width=.1, aes(ymin=estimate-sd, ymax=estimate+sd)) +
   geom_point(shape=21,size=3,fill="white") +
   theme_bw() + theme(strip.background = element_rect(fill="white")) +
-  xlab("") + ylab("Density\n per 100km2")
+  xlab("") + ylab("Density\n per 100km2") + ylim(0,10)
 
 ave.secr.plot  
 
