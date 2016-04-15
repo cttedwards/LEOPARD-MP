@@ -2,6 +2,8 @@
 
 library(ggplot2)
 
+source('utils/pdfr.r')
+
 # numbers
 # from Swanepoel et al. 2014
 nfemales <- sum(c(99,80,73,45,194))
@@ -11,10 +13,8 @@ nmales   <- sum(c(41,24,24,28,95))
 harem_size <- 5
 
 # create orthogonal data.frame
-nseq <- seq(0, 2, length = 6)
-
-nmales   <- nmales * nseq
-nfemales <- nfemales * nseq
+nmales   <- nmales * seq(0, 2, length = 101)
+nfemales <- seq(100, 600, by = 100)
 
 dfr <- expand.grid(nm = nmales, nf = nfemales)
 dfr$nh <- dfr$nf / harem_size
@@ -67,73 +67,48 @@ dfr$pe <- apply(dfr, 1, function(x) probability_encounter(x[1], x[2]))
 
 ggplot(dfr) + geom_line(aes(nm, pe, col = as.factor(nf))) + ggtitle('probability_encounter()')
 
+gg <- ggplot(dfr) + geom_line(aes(nm, pe, col = as.factor(nf))) + ggtitle('Probability of male occupancy per harem\n') + labs(x = 'Number of mature males', y = '', col = 'Number of mature \nfemales')
 
-# probability of encounter should have an origin at zero and asymptote at 1 as nencounters approaces its
-# asymptote at nharems * 2
+pdfr(gg, width = 10, name = 'pocc')
 
-logistic <- function(x) 1 / (1 + exp(-x))
-
-dfr$value2 <- logistic(dfr$value)
-
-
-# number of harems over the number of encounters
-probability_encounter <- function(nm, nf) {
+cub_survivorship <- function(nm, nf, sm) {
     
     nmales   <- nm
     nfemales <- nf
+    smales   <- sm
     
-    # number of harems
-    nharems     <- nfemales / harem_size
+    scub_star <- 0.3270833
+    sjuv_star <- 0.7197452
     
-    # number of encounters (truncated)
-    nencounters <- number_encounters(nmales, nfemales)
+    pencounter <- probability_encounter(nmales, nfemales)
     
-    # probability of encounter
-    pencounter    <- nharems / nencounters
+    scub <- scub_star * (1 - pencounter * (1 - smales))
+    sjuv <- sjuv_star * (1 - pencounter * (1 - smales))
     
-    # truncated at <= 1
-    pencounter    <- vapply(pencounter, function(x) min(x, 1), numeric(1))
-    
-    # return
-    return(pencounter)
-}
-
-dfr$value <- apply(dfr, 1, function(x) probability_encounter(x[1], x[2]))
-
-ggplot(dfr) + geom_line(aes(nm, value, col = as.factor(nf))) + ggtitle('probability_encounter()')
-
-ggplot(dfr) + geom_line(aes(nf, value, col = as.factor(nm))) + ggtitle('probability_encounter()')
-
-
-# probability of infanticide
-probability_infanticide <- function() {
-    
-    
-    
-    
+    return(list(scub = scub, sjuv = sjuv))
     
 }
 
+nfemales <- sum(c(99,80,73,45,194))
+nmales   <- sum(c(41,24,24,28,95))
 
-# probability of occupancy
-# i.e. probability of a male being present
-# (number of males over the number of male/female
-# encounters)
-pocc <- function(nm, nf, h = 5) {
-    nh <- nf / h
-    nh / nocc(nm, nf)
-}
+# create orthogonal data.frame
+smales   <- seq(0, 1, length = 101)
 
-# probability of infanticide
-# (probaility of male being killed multiplied by 
-# probability of occupancy)
-pinf <- function(sm, nm, nf) {
-    sm * pocc(nm, nf)
-}
+dfr <- data.frame(nm = nmales, nf = nfemales, sm = smales)
+dfr$nm <- dfr$nm * dfr$sm
 
-xx <- pocc(nm * nseq, nf)
+dfr <- rbind(data.frame(dfr, age = 'Cub',      ss = apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[3])[[1]])),
+             data.frame(dfr, age = 'Juvenile', ss = apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[3])[[2]])))
 
-plot(nm * nseq, xx)
+ggplot(dfr) + geom_line(aes(sm, ss)) + facet_wrap(~age) + ggtitle('Survivorship')
+
+gg <- ggplot(dfr) + geom_line(aes(sm, ss)) + facet_wrap(~age) + ggtitle('Survivorship') + labs(x = 'Survivorship of mature males', y = '')
+
+pdfr(gg, width = 10, name = 'sinf')
+
+
+
 
 
 
