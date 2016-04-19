@@ -19,7 +19,7 @@ eigen.df <- data.frame()
 ## number of monte carlo samples
 nreps <- 100
 ## number of projection years
-nyr.proj <- 20
+nyr.proj <- 30
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -66,22 +66,23 @@ for (i in 1:nreps) {
     # correlated deviation in survival: 
     # log-normal with cv = 0.2
     # truncated at 0 and 1
-    #sdev <- rnorm(1)
-    #sigma <- sqrt(log(1+0.20^2))
+    sdev <- rnorm(1)
+    sigma <- sqrt(log(1+0.20^2))
     
     # (check this: if you take 1000 values of sdev the right hand side should have a mean value
     # approximately equal to param.sample)
-    #param.sample[1:14] <- exp(log(param.sample[1:14]) +  sigma * sdev - sigma^2/2)
-    #param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
+    param.sample[1:14] <- exp(log(param.sample[1:14]) +  sigma * sdev - sigma^2/2)
+    param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
     # calculate stochastic survival
-    #removals <- implementation(xx, 100, preference = c(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-    #xx <- survival(xx, removals@kills)
-    xx <- survival(xx)
+    removals <- implementation(xx, 50, preference = c(rep(0, 9), rep(1, 5)))
+
+    xx <- survival(xx, removals@kills)
+    #xx <- survival(xx)
 
     # calculate stochastic birth
     xx <- birth(xx)
-    #eigen <- Re(eigen(tmatrix(xx))$values)[1]
+    eigen <- Re(eigen(tmatrix(xx))$values)[1]
     #print(Re(eigen(tmatrix(xx))$values)[1])
     
     # step forward
@@ -90,7 +91,7 @@ for (i in 1:nreps) {
     # record numbers
     x[,i,y] <- xx
    
-    #eigen.df <- rbind(eigen.df, eigen)
+    eigen.df <- rbind(eigen.df, eigen)
     
      
   }
@@ -120,3 +121,4 @@ sum(xx@.Data[1:2]) / sum(xx@.Data[3:14])
 #eigen(tmatrix(xx))
 
 
+mean(eigen.df[,1])
