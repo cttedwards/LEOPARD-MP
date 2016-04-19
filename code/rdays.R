@@ -170,18 +170,25 @@ age.structure <- c(0.35,0.2,0.06,0.05,0.04,0.04,0.02,0.1,0.04,0.02,0.01,0.01,0.0
 
 xx <- newleopard(2000 * age.structure)
 
+xx <- xx@.Data
+
 # approximate negative binomial distribution
-days <- numeric(1000)
+days <- ages <- numeric(1000)
 for (i in 1:1000) {
-    days[i] <- kill(xx,beta = c(0.0001, 0.0004, 1))$waiting.time
+    tmp <- kill(xx)
+    days[i] <- tmp$waiting.time
+    ages[i] <- which(tmp$kill.at.age > 0)
 }
 
 hist(days, main = 'linear increase in catchability')
 
+hist(ages, main = 'linear increase in catchability', prob = TRUE)
+lines(1:14 - 0.5, c(0.256,0.244,0.712,0.462,0.462,0.462,0.359,0.726,0.712,0.897,0.974,0.949,1.00,0.99)/sum(c(0.256,0.244,0.712,0.462,0.462,0.462,0.359,0.726,0.712,0.897,0.974,0.949,1.00,0.99)))
+
 # geometric distribution
 days <- numeric(1000)
 for (i in 1:1000) {
-    days[i] <- kill(xx, beta = c(0.1, 0, 1), theta = 0.4)$waiting.time
+    days[i] <- kill(xx, beta = c(0.1, 0), theta = 0.4)$waiting.time
 }
 
 hist(days, main = 'constant catchability')
