@@ -6,7 +6,7 @@
 library(OIsurv)
 
 rm(list=ls())
-setwd("/Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Database/R_PROJECTS/PhD_Chapter3/MSE_Paper/code")
+setwd("/Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Database/R_PROJECTS/PhD_Chapter3/MSE_Paper/LEOPARD-MP/code")
 
 source('utils/reader.r')
 source('utils/saver.r')
@@ -219,6 +219,27 @@ S.13.se <- surv.diff.m.se[8]
 S.14.se <- surv.diff.m.se[9]
 
 ###########################################################################################
+# df
+###########################################################################################
+
+age.class <- c("S.1", "S.1.1", "S.1.2", "S.1.3", "S.1.4", "S.1.5",
+               "S.2", "S.2.1", "S.2.2", "S.2.3", "S.2.4", "S.2.5",
+               "S.3", "S.4", "S.5", "S.6", "S.7", "S.8", "S.9", "S.10",
+               "S.11", "S.12", "S.13", "S.14")
+#sex <- c("mix", "mix", "f", "f", "f", "f", "f", "f", "m", "m", "m", "m", "m", "m")
+#order <- c(1,2,1,2,3,4,5,6,1,2,3,4,5,6)
+surv <- c(S.1, S.1.1, S.1.2, S.1.3, S.1.4, S.1.5,
+          S.2, S.2.1, S.2.2, S.2.3, S.2.4, S.2.5,
+          S.3, S.4, S.5, S.6, S.7, S.8, S.9, S.10,
+          S.11, S.12, S.13, S.14)
+surv.se <- c(S.1.se, S.1.1.se, S.1.2.se, S.1.3.se, S.1.4.se, S.1.5.se,
+             S.2.se, S.2.1.se, S.2.2.se, S.2.3.se, S.2.4.se, S.2.5.se,
+             S.3.se, S.4.se, S.5.se, S.6.se, S.7.se, S.8.se, S.9.se, S.10.se,
+             S.11.se, S.12.se, S.13.se, S.14.se)
+
+sabi.sands.surv.df <- data.frame(age.class, surv, surv.se)
+
+###########################################################################################
 # SAVE
 ###########################################################################################
 
@@ -228,6 +249,7 @@ saver(surv.diff.c,surv.diff.c1,surv.diff.c2,surv.diff.c3,surv.diff.c4,surv.diff.
       surv.diff.c.se,surv.diff.c1.se,surv.diff.c2.se,surv.diff.c3.se,surv.diff.c4.se,surv.diff.c5.se,
       surv.diff.j.se,surv.diff.j1.se,surv.diff.j2.se,surv.diff.j3.se,surv.diff.j4.se,surv.diff.j5.se,
       surv.diff.f.se, surv.diff.m.se,
+      sabi.sands.surv.df,
       name = 'survival_estimates')
 
 ###########################################################################################

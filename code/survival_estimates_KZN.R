@@ -41,13 +41,13 @@ plot(kzn.surv.m.fit, col=c(1:2), xlab="AGE (MONTHS)", ylab="MALE SURVIVAL PROBAB
 ###########################################################################################
 
 kzn.surv.c.fit <- survfit(Surv(time=AGE.START.MONTHS,time2=AGE.MONTHS,event=AGE.MET,type='counting')~1, 
-                           data = kzn.surv.juv)                                                              # cj survival (from all mothers)
-plot(kzn.surv.c.fit, col=c(1:2), xlab="AGE (MONTHS)", ylab="All DEPENDENT SURVIVAL PROBABILITY", conf.int = TRUE)
+                           data = kzn.surv.cub)                                                              # cj survival (from all mothers)
+plot(kzn.surv.c.fit, col=c(1:2), xlab="AGE (MONTHS)", ylab="CUB SURVIVAL PROBABILITY", conf.int = TRUE)
 
 
 kzn.surv.j.fit <- survfit(Surv(time=AGE.START.MONTHS,time2=AGE.MONTHS,event=AGE.MET,type='counting')~1, 
                           data = kzn.surv.juv)                                                              # cj survival (from all mothers)
-plot(kzn.surv.j.fit, col=c(1:2), xlab="AGE (MONTHS)", ylab="All DEPENDENT SURVIVAL PROBABILITY", conf.int = TRUE)
+plot(kzn.surv.j.fit, col=c(1:2), xlab="AGE (MONTHS)", ylab="JUVENILE SURVIVAL PROBABILITY", conf.int = TRUE)
 
 ###########################################################################################
 # ESTIMATE SURVIVAL PROBABILITIES
@@ -124,6 +124,27 @@ S.13.se <- surv.diff.m.se[8]
 S.14.se <- surv.diff.m.se[9]
 
 ###########################################################################################
+# df
+###########################################################################################
+
+age.class <- c("S.1",
+               "S.2",
+               "S.3", "S.4", "S.5", "S.6", "S.7", "S.8", "S.9", "S.10",
+               "S.11", "S.12", "S.13", "S.14")
+#sex <- c("mix", "mix", "f", "f", "f", "f", "f", "f", "m", "m", "m", "m", "m", "m")
+#order <- c(1,2,1,2,3,4,5,6,1,2,3,4,5,6)
+surv <- c(S.1,
+          S.2,
+          S.3, S.4, S.5, S.6, S.7, S.8, S.9, S.10,
+          S.11, S.12, S.13, S.14)
+surv.se <- c(S.1.se,
+             S.2.se,
+             S.3.se, S.4.se, S.5.se, S.6.se, S.7.se, S.8.se, S.9.se, S.10.se,
+             S.11.se, S.12.se, S.13.se, S.14.se)
+
+kzn.surv.df <- data.frame(age.class, surv, surv.se)
+
+###########################################################################################
 # SAVE
 ###########################################################################################
 
@@ -133,6 +154,7 @@ saver(surv.diff.c,
       surv.diff.c.se,
       surv.diff.j.se,
       surv.diff.f.se, surv.diff.m.se,
+      kzn.surv.df,
       name = 'survival_estimates_KZN')
 
 ###########################################################################################
