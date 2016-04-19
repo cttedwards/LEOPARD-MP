@@ -55,7 +55,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 5)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.5)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -75,7 +75,7 @@ for (i in 1:nreps) {
     param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
     # calculate stochastic survival
-    removals <- implementation(xx, 50, preference = c(rep(0, 9), rep(1, 5)))
+    removals <- implementation(xx, 0, preference = c(rep(0, 9), rep(1, 5)))
 
     xx <- survival(xx, removals@kills)
     #xx <- survival(xx)
