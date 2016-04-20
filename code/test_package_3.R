@@ -13,12 +13,14 @@ source('utils/loader.r')
 source('utils/reader.r')
 source('params.R')
 
+eigen.df <- data.frame()
+
 # dimensions
 
 ## number of monte carlo samples
 nreps <- 100
 ## number of projection years
-nyr.proj <- 20
+nyr.proj <- 30
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -54,7 +56,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.25)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 2)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -74,14 +76,23 @@ for (i in 1:nreps) {
     param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
     # calculate stochastic survival
-    removals <- implementation(xx, 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
-    xx <- survival(xx, removals@kills)
+    #removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))))
+    
+    removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1)), 
+                            problem_animal = list(size = 0)))
+    
+    #xx <- survival(xx, removals$trophy@kills)
+    
+    total.removals <- removals$trophy@kills + removals$problem_animal@kills
+    
+    xx <- survival(xx, total.removals)
     
     #xx <- survival(xx)
     
     # calculate stochastic birth
     xx <- birth(xx)
-    #eigen <- Re(eigen(tmatrix(xx))$values)[1]
+    
+    eigen <- Re(eigen(tmatrix(xx))$values)[1]
     #print(Re(eigen(tmatrix(xx))$values)[1])
     
     # step forward
@@ -89,6 +100,8 @@ for (i in 1:nreps) {
     
     # record numbers
     x[,i,y] <- xx
+    
+    eigen.df <- rbind(eigen.df, eigen)
     
   }
   
@@ -109,14 +122,14 @@ axis(side = 1, at = 1:nyr.proj)
 
 #Re(eigen(tmatrix(xx))$values)[1]
 
-#xx@.Data
-#sum(xx@.Data[1:2]) / sum(xx@.Data[3:14])
+xx@.Data
+sum(xx@.Data[1:2]) / sum(xx@.Data[3:14])
 
 #x.tot
 
 #tmatrix(xx)
 #eigen(tmatrix(xx))
-#mean(eigen.df[,1])
+mean(eigen.df[,1])
 
 ###########################################################################################
 # Adding problem leopard offtake
