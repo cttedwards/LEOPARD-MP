@@ -54,7 +54,7 @@ for (i in 1:nreps) {
     
     # create new object to hold leopard numbers
     # and vital rates
-    xx <- newleopard(x.initial, param.sample[1:14], param.sample[15:19])
+    xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19])
     
     # assign multiplicative maternal effects
     xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)

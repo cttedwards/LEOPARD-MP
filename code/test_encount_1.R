@@ -5,7 +5,7 @@ k <- c(1.857143, 1.842105, 1.857143, 1.923077, 1.845070)
 
 
 # harem size
-h <- 5
+h <- 1.5
 
 # numbers
 nf <- sum(c(99,80,73,45,194))
@@ -59,7 +59,7 @@ nfemales <- sum(c(99,80,73,45,194))
 nmales   <- sum(c(41,24,24,28,95))
 
 # harem size
-harem_size <- 5
+harem_size <- 1.5
 
 # create orthogonal data.frame
 nmales   <- nmales * seq(0, 2, length = 101)
