@@ -1,12 +1,12 @@
 
 
 
-
+library(plyr)
 library(rstan)
 
 load('../../results/survival_estimates.Rdata')
 
-Sestimates  <- c(S.1   = surv.diff.c[2] * (1/surv.diff.c[1]),       # cub
+S_estimates  <- c(S.1   = surv.diff.c[2] * (1/surv.diff.c[1]),       # cub
                  S.2   = surv.diff.j[2] * (1/surv.diff.j[1]),       # juvenile
                  S.3   = surv.diff.f[4] * (1/surv.diff.f[3]),       # sub-adult female
                  S.4   = surv.diff.f[5] * (1/surv.diff.f[4]),       # adult female (36-48)
@@ -21,55 +21,78 @@ Sestimates  <- c(S.1   = surv.diff.c[2] * (1/surv.diff.c[1]),       # cub
                  S.13  = surv.diff.m[8] * (1/surv.diff.m[7]),       # adult male (72-84)
                  S.14  = surv.diff.m[9] * (1/surv.diff.m[8]))       # adult male (>84)
 
-kestimates <- c(br.36 = 1.857142857,                               # birth rate (mother 36-48)     
-                br.48 = 1.842105263,                               # birth rate (mother 48-60)              
-                br.60 = 1.857142857,                               # birth rate (mother 60-72)               
-                br.72 = 1.923076923,                               # birth rate (mother 72-84)               
-                br.84 = 1.845070423)                               # birth rate (mother >84) )
-
-Nestimates <- c(nc = 694,
-                nj = 410,
-                saf = 117,
-                f36 = 99,
-                f48 = 80,
-                f60 = 73,
-                f72 = 45,
-                f84 = 194,
-                sam = 84,
-                m36 = 41,
-                m48 = 24,
-                m60 = 24,
-                m72 = 28,
-                m84 = 95)
+N_estimates <- c('2008' = NA, '2009' = NA, '2010' = NA, '2011' = NA, '2012' = NA, '2013' = 2008, '2014' = NA, '2015' = NA) 
+N_estimates[is.na(N_estimates)] <- -1
 
 classes <- c('cub', 'juv', 'saf', 'adf', 'sam', 'adm')
 
 # geometric means of rate data
 geomean <- function(x) prod(x) ^ (1/length(x))
 
-S.cub <- Sestimates[1]
-S.juv <- Sestimates[2]
-S.saf <- Sestimates[3]
-S.adf <- geomean(Sestimates[4:8])
+S_estimates <- c('S.cub' = S_estimates[1], 'S.juv' = S_estimates[2], 'S.saf' = S_estimates[3], 'S.adf' = geomean(S_estimates[4:8]), 'S.sam' = S_estimates[9], 'S.adm' = geomean(S_estimates[10:14]))
 
-
-kills <- data.frame(year = 2008:2015, trophy = c(35, 35, 35, 35, 35, 28, 41, 36), problem_animal = c(97, 54, 85, 40, 58, 35, 60, 60))
+# kill data
+kills <- data.frame(year = 2008:2015, 
+                    trophy = c(35, 35, 35, 35, 35, 28, 41, 36), 
+                    problem_animal = c(97, 54, 85, 40, 58, 35, 60, 60))
 kills$total <- kills$trophy + kills$problem
 
+# proportions data
+age_comp <- read.csv('age_class_composition.csv', row.names = 1)
+age_comp <- as.matrix(t(age_comp))
+
+# abundance
+abundance <- read.csv('density_estimates.csv')
+abundance <- ddply(abundance, .(year), summarize, density = mean(density, na.rm = TRUE))
+abundance$density[is.na(abundance$density)] <- -1
+
+# compile
 mdl <- stan_model(file = 'leopard.stan')
 
-dat <- list(T = 8, A = 14, S = Sestimates, k = kestimates, h = 1.5, kills = kills$total)
+dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 3, proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
 
-par_init <- function() list(N0 = Nestimates, H = 0.05)
+par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = 0.05, logq = -5.7, h = 2, selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
 
-mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 1, iter = 1)
+mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 1, iter = 1e5, thin = 100)
 
-M <- extract(mdl_fit, pars = 'M')[[1]]
-M[1,,]
+traceplot(mdl_fit, pars = 'h')
+traceplot(mdl_fit, pars = 'H')
+traceplot(mdl_fit, pars = 'logq')
+traceplot(mdl_fit, pars = 'N0')
+traceplot(mdl_fit, pars = 'selectivity')
 
+mdl_res <- extract(mdl_fit)
 
+hist(mdl_res[['H']],, main = 'Harvest rate')
+hist(mdl_res[['logq']], main = 'log(catchability)')
+hist(apply(mdl_res[['N0']], 1, sum), main = 'Total numbers (initial)')
+hist(mdl_res[['h']], main = 'Harem size')
 
+kills$totalHat <- apply(mdl_res[['killsHat']], 2, median)
+plot(total ~ year, kills)
+lines(totalHat ~ year, kills)
 
+numbers <- data.frame(year = 2008:2015, N = N_estimates, Nhat = apply(mdl_res[['numbersHat']], 2, median))
+numbers[numbers < 0] <- NA
+plot(N ~ year, numbers)
+lines(Nhat ~ year, numbers)
 
+abundance$densityHat <- apply(mdl_res[['densityHat']], 2, median)
+abundance[abundance < 0] <- NA
+plot(density ~ year, abundance)
+lines(densityHat ~ year, abundance)
 
+thetaHat <- apply(mdl_res[['thetaHat']], 2:3, median)
+
+dfr <- data.frame(age = colnames(age_comp), theta = age_comp[6,], thetaHat = thetaHat[6, ] / sum(thetaHat[6,]))
+plot(theta ~ age, dfr)
+points(thetaHat ~ age, dfr, col = 2)
+
+dfr <- data.frame(age = colnames(age_comp), theta = age_comp[7,], thetaHat = thetaHat[7, ] / sum(thetaHat[7,]))
+plot(theta ~ age, dfr)
+points(thetaHat ~ age, dfr, col = 2)
+
+dfr <- data.frame(age = colnames(age_comp), theta = age_comp[8,], thetaHat = thetaHat[8, ] / sum(thetaHat[8,]))
+plot(theta ~ age, dfr)
+points(thetaHat ~ age, dfr, col = 2)
 
