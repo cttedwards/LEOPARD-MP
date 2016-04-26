@@ -4,7 +4,7 @@ library(ggplot2)
 
 source('utils/pdfr.r')
 
-# numbers
+# numbers (mature)
 # from Swanepoel et al. 2014
 nfemales <- sum(c(99,80,73,45,194))
 nmales   <- sum(c(41,24,24,28,95))
@@ -14,6 +14,7 @@ nmales   <- nmales * seq(0, 2, length = 101)
 nfemales <- seq(100, 600, by = 100)
 
 dfr <- expand.grid(nm = nmales, nf = nfemales)
+rm(nmales, nfemales)
 
 # number of encounters between males and females
 # follows the harmonic mean function
@@ -69,61 +70,50 @@ cub_survivorship <- function(nmales, nfemales, smales) {
     
 }
 
-dfr$sm <- seq(0, 1, length = 101)
+dfr$sm <- dfr$nm / max(dfr$nm) #seq(0, 1, length = 101)
 
 #dfr <- data.frame(nm = nmales, nf = nfemales, sm = smales)
 #dfr$nm <- dfr$nm * dfr$sm
 
-dfr$sc <- apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[3]))
+dfr$sc <- apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[5]))
 
-ggplot(dfr) + geom_line(aes(sm, sc)) + ggtitle('Survivorship')
+ggplot(dfr) + geom_line(aes(sm, sc, col = as.factor(nf))) + ggtitle('Survivorship')
 
-gg <- ggplot(dfr) + geom_line(aes(sm, ss)) + facet_wrap(~age) + ggtitle('Survivorship') + labs(x = 'Survivorship of mature males', y = '')
+gg <- ggplot(dfr) + geom_line(aes(nm, sc, col = as.factor(nf))) + ggtitle('Cub survivorship') + labs(x = 'Number males', y = '', col = 'Number\nfemales')
 
-pdfr(gg, width = 10, name = 'sinf')
+pdfr(gg, width = 10, name = 'cub_survivorship')
 
-
-birth_rate <- function(nf, nm, sm) {
-    
-    nmales   <- nm
-    nfemales <- nf
-    smales   <- sm
+birth_rate <- function(nfemales, nmales, smales, harem_size_equilibrium = 1.5, clutch_size = 2) {
     
     pencounter <- probability_encounter(nmales, nfemales)
     
     pinfanticide <- pencounter * (1 - smales)
     
-    ni <- nf * pinfanticide
+    ninfanticide <- nfemales * pinfanticide
     
-    harem_size  <- (3 * nf + ni) / nf
-    clutch_size <- 2
+    harem_size  <- (harem_size_equilibrium * nfemales + ninfanticide) / nfemales
     
-    nh <- nf / harem_size
+    nharems <- nfemales / harem_size
     
-    cubs <- harem_size * clutch_size * 2 * nm * nh / (nm + nh)
+    cubs <- harem_size * clutch_size * 2 * nmales * nharems / (nmales + nharems)
     
     return(list(h = harem_size, b = cubs))
 }
 
-nfemales <- sum(c(99,80,73,45,194))
-nmales   <- sum(c(41,24,24,28,95))
+dfr$hs <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[5])[[1]])
+dfr$br <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[5])[[2]])
 
-# create orthogonal data.frame
-smales   <- seq(0, 1, length = 101)
+ggplot(dfr) + geom_line(aes(hs, sc, col = as.factor(nf))) + ggtitle('Harem size')
 
-dfr <- data.frame(nm = nmales, nf = nfemales, sm = smales)
+ggplot(dfr) + geom_line(aes(br, sc, col = as.factor(nf))) + ggtitle('Birth rate')
 
-dfr$sc <- apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[3]))
-dfr$hs <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[3])[[1]])
-dfr$br <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[3])[[2]])
+ggplot(dfr) + geom_line(aes(sm, hs, col = as.factor(nf))) + ggtitle('Harem size')
 
-ggplot(dfr) + geom_line(aes(sc, hs)) + ggtitle('Harem size')
+ggplot(dfr) + geom_line(aes(sm, br, col = as.factor(nf))) + ggtitle('Birth rate')
 
-ggplot(dfr) + geom_line(aes(sc, br)) + ggtitle('Birth rate')
+ggplot(dfr) + geom_line(aes(nm, hs, col = as.factor(nf))) + ggtitle('Harem size')
 
-ggplot(dfr) + geom_line(aes(sm, hs)) + ggtitle('Harem size')
-
-ggplot(dfr) + geom_line(aes(sm, br)) + ggtitle('Birth rate')
+ggplot(dfr) + geom_line(aes(nm, br, col = as.factor(nf))) + ggtitle('Birth rate')
 
 
 gg <- ggplot(dfr) + geom_line(aes(sm, ss)) + facet_wrap(~age) + ggtitle('Survivorship') + labs(x = 'Survivorship of mature males', y = '')
