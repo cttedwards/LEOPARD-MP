@@ -10,10 +10,11 @@ nfemales <- sum(c(99,80,73,45,194))
 nmales   <- sum(c(41,24,24,28,95))
 
 # create orthogonal data.frame
-nmales   <- nmales * seq(0, 2, length = 101)
-nfemales <- seq(100, 600, by = 100)
+#nmales   <- nmales * seq(0, 2, length = 101)
+#nfemales <- seq(100, 600, by = 100)
 
-dfr <- expand.grid(nm = nmales, nf = nfemales)
+dfr <- expand.grid(nm = nmales, nf = nfemales, sm = seq(0, 1, length = 101))
+#dfr$sm <- dfr$nm / max(dfr$nm)
 rm(nmales, nfemales)
 
 # number of encounters between males and females
@@ -70,12 +71,7 @@ cub_survivorship <- function(nmales, nfemales, smales) {
     
 }
 
-dfr$sm <- dfr$nm / max(dfr$nm) #seq(0, 1, length = 101)
-
-#dfr <- data.frame(nm = nmales, nf = nfemales, sm = smales)
-#dfr$nm <- dfr$nm * dfr$sm
-
-dfr$sc <- apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[5]))
+dfr$sc <- apply(dfr, 1, function(x) cub_survivorship(x[1], x[2], x[3]))
 
 ggplot(dfr) + geom_line(aes(sm, sc, col = as.factor(nf))) + ggtitle('Survivorship')
 
@@ -83,7 +79,7 @@ gg <- ggplot(dfr) + geom_line(aes(nm, sc, col = as.factor(nf))) + ggtitle('Cub s
 
 pdfr(gg, width = 10, name = 'cub_survivorship')
 
-birth_rate <- function(nfemales, nmales, smales, harem_size_equilibrium = 1.5, clutch_size = 2) {
+birth_rate <- function(nfemales, nmales, smales, harem_size_equilibrium = 2, clutch_size = 2) {
     
     pencounter <- probability_encounter(nmales, nfemales)
     
@@ -100,8 +96,10 @@ birth_rate <- function(nfemales, nmales, smales, harem_size_equilibrium = 1.5, c
     return(list(h = harem_size, b = cubs))
 }
 
-dfr$hs <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[5])[[1]])
-dfr$br <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[5])[[2]])
+dfr$hs <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[3])[[1]])
+dfr$br <- apply(dfr, 1, function(x) birth_rate(x[1], x[2], x[3])[[2]])
+
+ggplot(dfr) + geom_point(aes(hs, br, col = nm)) + facet_wrap(~nf)
 
 ggplot(dfr) + geom_line(aes(hs, sc, col = as.factor(nf))) + ggtitle('Harem size')
 
@@ -109,7 +107,7 @@ ggplot(dfr) + geom_line(aes(br, sc, col = as.factor(nf))) + ggtitle('Birth rate'
 
 ggplot(dfr) + geom_line(aes(sm, hs, col = as.factor(nf))) + ggtitle('Harem size')
 
-ggplot(dfr) + geom_line(aes(sm, br, col = as.factor(nf))) + ggtitle('Birth rate')
+ggplot(dfr) + geom_line(aes(sm, br, col = nm), size = 2) + facet_wrap(~nf) + ggtitle('Birth rate')
 
 ggplot(dfr) + geom_line(aes(nm, hs, col = as.factor(nf))) + ggtitle('Harem size')
 
