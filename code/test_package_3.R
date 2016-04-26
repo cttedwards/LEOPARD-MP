@@ -56,7 +56,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 2)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.65)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -78,8 +78,8 @@ for (i in 1:nreps) {
     # calculate stochastic survival
     #removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))))
     
-    removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1)), 
-                            problem_animal = list(size = 0)))
+    removals <- implementation(xx, list(trophy = list(size = 10, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1)), 
+                            problem_animal = list(size = 20)))
     
     #xx <- survival(xx, removals$trophy@kills)
     
@@ -111,8 +111,16 @@ for (i in 1:nreps) {
 # PLOTS
 ###########################################################################################
 
-x.tot <- apply(x, 2:3, sum)
-boxplot(x.tot, ylab = "N", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 4000))
+x.tot <- apply(x, 2:3, sum) # all individuals in population
+boxplot(x.tot, ylab = "Number of leopard", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 4000))
+axis(side = 1, at = 1:nyr.proj)
+
+x.tot.f <- apply(x[3:8,,], 2:3, sum) # just females
+boxplot(x.tot.f, ylab = "Number of females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
+axis(side = 1, at = 1:nyr.proj)
+
+x.tot.r.f <- apply(x[4:8,,], 2:3, sum) # just reproductive females
+boxplot(x.tot.r.f, ylab = "Number of reproductive females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
 axis(side = 1, at = 1:nyr.proj)
 
 ###########################################################################################
@@ -130,15 +138,5 @@ sum(xx@.Data[1:2]) / sum(xx@.Data[3:14])
 #tmatrix(xx)
 #eigen(tmatrix(xx))
 mean(eigen.df[,1])
-
-###########################################################################################
-# Adding problem leopard offtake
-###########################################################################################
-
-#xx - rep(1,14)
-#xx@maternal.birth[1,] - 1:5
-
-
-
 
 
