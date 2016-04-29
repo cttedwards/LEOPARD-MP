@@ -43,17 +43,16 @@ age_comp <- as.matrix(t(age_comp))
 
 # abundance
 abundance <- read.csv('density_estimates.csv')
-abundance <- ddply(abundance, .(year), summarize, density = mean(density, na.rm = TRUE))
 abundance$density[is.na(abundance$density)] <- -1
 
 # compile
 mdl <- stan_model(file = 'leopard.stan')
 
-dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 3, proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
+dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 2, proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
 
-par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = 0.05, logq = -5.7, h = 2, selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
+par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = 0.05, logq = 0, h = 2, selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
 
-mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 1, iter = 1e5, thin = 100)
+mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 4, iter = 1e4, thin = 10)
 
 traceplot(mdl_fit, pars = 'h')
 traceplot(mdl_fit, pars = 'H')

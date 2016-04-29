@@ -1,11 +1,10 @@
 
 # to do:
-# make harvest rate time variant
 # remove estimation of h
-# model is not fit to first data point:
-# fit N0 to numbers[1], kills[1] etc. 
+# add standard errors for data 
 # add additional H parameter (for unaccounted mortality)
 # to be used as a sensitivity
+# tidy up terrible code!
 
 functions {
 
@@ -80,7 +79,7 @@ parameters {
 	real h;
 	real logq;
 	real<lower=0,upper=0.99> H;
-	real<lower=0,upper=1000> N0[A];
+	real<lower=0,upper=10000> N0[A];
 	real<lower=0,upper=1.0> selectivity[A];
 }
 
@@ -98,6 +97,28 @@ model {
 	// initial numbers
 	for (a in 1:A) 
 		N[a] <- N0[a];
+		
+	// fit initial state to kills
+	if (kills[1] > 0) {
+		lambda <- 0;
+		for (a in 1:A)
+			lambda <- lambda + N[a] * H * selectivity[a];
+		kills[1] ~ poisson(lambda);
+	}
+	// fit initial state to numbers estimates
+	if (numbers[1] > 0)
+		numbers[1] ~ lognormal(log(sum(N)), 0.1);
+	// fit initial state to density estimates
+	if (density[1] > 0)
+		density[1] ~ lognormal(log(q * sum(N)), 0.1);
+	// fit initial state to proportions
+	theta[1] <- N[3] / (N[3] + N[4] + N[5] + N[6]);
+	theta[2] <- N[4] / (N[3] + N[4] + N[5] + N[6]);
+	theta[3] <- N[5] / (N[3] + N[4] + N[5] + N[6]);
+	theta[4] <- N[6] / (N[3] + N[4] + N[5] + N[6]);
+	if (sum(proportions[1]) > 0) {
+		theta ~ normal(proportions[1], 0.1);
+	}
 	
 	// projection
 	for (t in 2:T) {
@@ -134,13 +155,13 @@ model {
 	
 	// priors
 	h ~ uniform(1,5);
-	logq ~ uniform(-10.0,0.0);
+	logq ~ uniform(-10.0,10.0);
 	H ~ uniform(0,1);
-	N0 ~ uniform(0,1000);
+	N0 ~ uniform(0,10000);
 	selectivity ~ uniform(0,1);
 	
 	// Jacobian
-	//increment_log_prob(-logq);
+	increment_log_prob(-logq);
 }
 
 generated quantities {
