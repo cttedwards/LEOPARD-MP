@@ -50,13 +50,20 @@ mdl <- stan_model(file = 'leopard.stan')
 
 dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 2, proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
 
-par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = 0.05, logq = 0, h = 2, selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
+par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = runif(1, 0, 0.5), logq = runif(1, -8, -3), h = runif(1, 1, 5), selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
 
-mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 4, iter = 1e4, thin = 10)
+mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 10, iter = 1e4, thin = 10)
 
-traceplot(mdl_fit, pars = 'h')
-traceplot(mdl_fit, pars = 'H')
-traceplot(mdl_fit, pars = 'logq')
+#Warning messages:
+#1: There were 4217 divergent transitions after warmup. Increasing adapt_delta above 0.8 may help. 
+#2: There were 2131 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. 
+#3: Examine the pairs() plot to diagnose sampling problems
+
+# STILL NOT FITTING TO DENSITY DATA.... 
+
+traceplot(mdl_fit, pars = 'h', inc_warmup = TRUE)
+traceplot(mdl_fit, pars = 'H', inc_warmup = TRUE)
+traceplot(mdl_fit, pars = 'logq', inc_warmup = TRUE)
 traceplot(mdl_fit, pars = 'N0')
 traceplot(mdl_fit, pars = 'selectivity')
 

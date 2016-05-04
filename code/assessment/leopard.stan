@@ -76,11 +76,11 @@ transformed data {
 }
 
 parameters {
-	real h;
-	real logq;
-	real<lower=0,upper=0.99> H;
-	real<lower=0,upper=10000> N0[A];
-	real<lower=0,upper=1.0> selectivity[A];
+	real<lower=0.1> h;
+	real<upper=0.0> logq;
+	real<lower=0.0,upper=0.5> H;
+	real<lower=10,upper=10000> N0[A];
+	real<lower=0.0,upper=1.0> selectivity[A];
 }
 
 transformed parameters { 
@@ -107,10 +107,10 @@ model {
 	}
 	// fit initial state to numbers estimates
 	if (numbers[1] > 0)
-		numbers[1] ~ lognormal(log(sum(N)), 0.1);
+		numbers[1] ~ lognormal(log(sum(N)), 0.001);
 	// fit initial state to density estimates
 	if (density[1] > 0)
-		density[1] ~ lognormal(log(q * sum(N)), 0.1);
+		density[1] ~ lognormal(log(q * sum(N)), 1);
 	// fit initial state to proportions
 	theta[1] <- N[3] / (N[3] + N[4] + N[5] + N[6]);
 	theta[2] <- N[4] / (N[3] + N[4] + N[5] + N[6]);
@@ -139,10 +139,10 @@ model {
 		}
 		// fit to numbers estimates
 		if (numbers[t] > 0)
-			numbers[t] ~ lognormal(log(sum(N)), 0.1);
+			numbers[t] ~ lognormal(log(sum(N)), 0.001);
 		// fit to density estimates
 		if (density[t] > 0)
-			density[t] ~ lognormal(log(q * sum(N)), 0.1);
+			density[t] ~ lognormal(log(q * sum(N)), 1);
 		// fit to proportions
 		theta[1] <- N[3] / (N[3] + N[4] + N[5] + N[6]);
 		theta[2] <- N[4] / (N[3] + N[4] + N[5] + N[6]);
@@ -154,14 +154,14 @@ model {
 	}
 	
 	// priors
-	h ~ uniform(1,5);
-	logq ~ uniform(-10.0,10.0);
-	H ~ uniform(0,1);
-	N0 ~ uniform(0,10000);
+	h ~ lognormal(0,10)T[0.1,];
+	logq ~ uniform(-10.0,-1.0);
+	H ~ uniform(0,0.9);
+	N0 ~ uniform(10,10000);
 	selectivity ~ uniform(0,1);
 	
 	// Jacobian
-	increment_log_prob(-logq);
+	//increment_log_prob(-logq);
 }
 
 generated quantities {
