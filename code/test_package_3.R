@@ -14,6 +14,8 @@ source('utils/reader.r')
 source('params.R')
 
 eigen.df <- data.frame()
+total.removed <- data.frame()
+pop.size <- data.frame()
 
 # dimensions
 
@@ -75,19 +77,25 @@ for (i in 1:nreps) {
     param.sample[1:14] <- exp(log(param.sample[1:14]) +  sigma * sdev - sigma^2/2)
     param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
-    # calculate stochastic survival
-    #removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))))
+    # define hunting scenario
+    removals <- implementation(xx, list(trophy = list(size = 20, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
+                            problem_animal = list(size = 0)))
     
-    removals <- implementation(xx, list(trophy = list(size = 10, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1)), 
-                            problem_animal = list(size = 20)))
-    
-    #xx <- survival(xx, removals$trophy@kills)
+    # include trophy hunting aging error 
+    #source('incorp.aging.error.r')
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills
+    #total.removals <- removals$trophy@kills + removals$problem_animal@kills
     
-    xx <- survival(xx, total.removals)
+    # add recovery years (2 years on, one year off)
+    #  if(y %% 3 == 0) {
+    #    total.removals <- rep(0, 14)
+    #  } 
     
+    # calculate stochastic survival
     #xx <- survival(xx)
+    xx <- survival(xx, total.removals)
+    #xx <- survival(xx, removals$trophy@kills, removals$problem_animal@kills)
     
     # calculate stochastic birth
     xx <- birth(xx)
@@ -102,6 +110,8 @@ for (i in 1:nreps) {
     x[,i,y] <- xx
     
     eigen.df <- rbind(eigen.df, eigen)
+    total.removed   <- rbind(total.removed, total.removals)
+    pop.size <- rbind(pop.size, xx@.Data)
     
   }
   
@@ -116,12 +126,12 @@ boxplot(x.tot, ylab = "Number of leopard", xaxt = "n", xlab = "Step", outline = 
 axis(side = 1, at = 1:nyr.proj)
 
 x.tot.f <- apply(x[3:8,,], 2:3, sum) # just females
-boxplot(x.tot.f, ylab = "Number of females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
-axis(side = 1, at = 1:nyr.proj)
+#boxplot(x.tot.f, ylab = "Number of females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
+#axis(side = 1, at = 1:nyr.proj)
 
 x.tot.r.f <- apply(x[4:8,,], 2:3, sum) # just reproductive females
-boxplot(x.tot.r.f, ylab = "Number of reproductive females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
-axis(side = 1, at = 1:nyr.proj)
+#boxplot(x.tot.r.f, ylab = "Number of reproductive females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))
+#axis(side = 1, at = 1:nyr.proj)
 
 ###########################################################################################
 # END
