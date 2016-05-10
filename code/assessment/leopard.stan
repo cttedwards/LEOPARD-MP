@@ -70,6 +70,8 @@ data {
 	real density[T];
 	real numbers[T];
 	vector[4] proportions[T];
+	real N0[A];
+	real selectivity[A];
 }
 
 transformed data {
@@ -79,8 +81,8 @@ parameters {
 	real<lower=0.1> h;
 	real<upper=0.0> logq;
 	real<lower=0.0,upper=0.5> H;
-	real<lower=10,upper=10000> N0[A];
-	real<lower=0.0,upper=1.0> selectivity[A];
+	//real<lower=10,upper=10000> N0[A];
+	//real<lower=0.0,upper=1.0> selectivity[A];
 }
 
 transformed parameters { 
@@ -103,11 +105,11 @@ model {
 		lambda <- 0;
 		for (a in 1:A)
 			lambda <- lambda + N[a] * H * selectivity[a];
-		kills[1] ~ poisson(lambda);
+		//kills[1] ~ poisson(lambda);
 	}
 	// fit initial state to numbers estimates
 	if (numbers[1] > 0)
-		numbers[1] ~ lognormal(log(sum(N)), 0.001);
+		//numbers[1] ~ lognormal(log(sum(N)), 0.001);
 	// fit initial state to density estimates
 	if (density[1] > 0)
 		density[1] ~ lognormal(log(q * sum(N)), 1);
@@ -117,7 +119,7 @@ model {
 	theta[3] <- N[5] / (N[3] + N[4] + N[5] + N[6]);
 	theta[4] <- N[6] / (N[3] + N[4] + N[5] + N[6]);
 	if (sum(proportions[1]) > 0) {
-		theta ~ normal(proportions[1], 0.1);
+		//theta ~ normal(proportions[1], 0.1);
 	}
 	
 	// projection
@@ -135,11 +137,11 @@ model {
 			lambda <- 0;
 			for (a in 1:A)
 				lambda <- lambda + N[a] * H * selectivity[a];
-			kills[t] ~ poisson(lambda);
+			//kills[t] ~ poisson(lambda);
 		}
 		// fit to numbers estimates
 		if (numbers[t] > 0)
-			numbers[t] ~ lognormal(log(sum(N)), 0.001);
+			//numbers[t] ~ lognormal(log(sum(N)), 0.001);
 		// fit to density estimates
 		if (density[t] > 0)
 			density[t] ~ lognormal(log(q * sum(N)), 1);
@@ -149,16 +151,16 @@ model {
 		theta[3] <- N[5] / (N[3] + N[4] + N[5] + N[6]);
 		theta[4] <- N[6] / (N[3] + N[4] + N[5] + N[6]);
 		if (sum(proportions[t]) > 0) {
-			theta ~ normal(proportions[t], 0.1);
+			//theta ~ normal(proportions[t], 0.1);
 		}
 	}
 	
 	// priors
 	h ~ lognormal(0,10)T[0.1,];
-	logq ~ uniform(-10.0,-1.0);
+	logq ~ uniform(-100.0,0.0);
 	H ~ uniform(0,0.9);
-	N0 ~ uniform(10,10000);
-	selectivity ~ uniform(0,1);
+	//N0 ~ uniform(10,10000);
+	//selectivity ~ uniform(0,1);
 	
 	// Jacobian
 	//increment_log_prob(-logq);

@@ -48,11 +48,11 @@ abundance$density[is.na(abundance$density)] <- -1
 # compile
 mdl <- stan_model(file = 'leopard.stan')
 
-dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 2, proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
+dat <- list(T = 8, A = 6, S = as.numeric(S_estimates), k = 2, N0 = c(600, 400, 100, 400, 100, 400), selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9), proportions = as.matrix(age_comp), kills = kills$total, density = as.numeric(abundance[,2]), numbers = as.numeric(N_estimates))
 
-par_init <- function() list(N0 = c(600, 400, 100, 400, 100, 400), H = runif(1, 0, 0.5), logq = runif(1, -8, -3), h = runif(1, 1, 5), selectivity = c(0.1, 0.1, 0.9, 0.9, 0.9, 0.9))
+par_init <- function() list(H = runif(1, 0, 0.5), logq = runif(1, -100, -1), h = runif(1, 1, 3))
 
-mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 10, iter = 1e4, thin = 10)
+mdl_fit <- sampling(mdl, data = dat, init = par_init, chains = 10, iter = 2e3, thin = 1)
 
 #Warning messages:
 #1: There were 4217 divergent transitions after warmup. Increasing adapt_delta above 0.8 may help. 
