@@ -22,7 +22,7 @@ pop.size <- data.frame()
 ## number of monte carlo samples
 nreps <- 100
 ## number of projection years
-nyr.proj <- 30
+nyr.proj <- 50
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -58,7 +58,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.65)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.5)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -78,18 +78,23 @@ for (i in 1:nreps) {
     param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
     # define hunting scenario
-    removals <- implementation(xx, list(trophy = list(size = 20, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
-                            problem_animal = list(size = 0)))
+    #removals <- implementation(xx, list(trophy = list(size = 20, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
+    #                        problem_animal = list(size = 0)))
+    
+    # create list of sequential hunting scenarios
+    removals <- list(trophy = list(rate = 0.5, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)), 
+                     problem_animal = list(rate = 0.0))
+    
+    removals <- harvest(xx, removals)
     
     # include trophy hunting aging error 
     #source('incorp.aging.error.r')
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills
-    #total.removals <- removals$trophy@kills + removals$problem_animal@kills
-    
+
     # add recovery years (2 years on, one year off)
-    #  if(y %% 3 == 0) {
-    #    total.removals <- rep(0, 14)
+    #  if(y %% 2 == 0) {
+    #    total.removals <- rep(0, 14) + removals$problem_animal@kills
     #  } 
     
     # calculate stochastic survival
@@ -147,6 +152,6 @@ sum(xx@.Data[1:2]) / sum(xx@.Data[3:14])
 
 #tmatrix(xx)
 #eigen(tmatrix(xx))
-mean(eigen.df[,1])
+median(eigen.df[,1])
 
 
