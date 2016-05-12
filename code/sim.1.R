@@ -38,6 +38,7 @@ cub.surv  <- array(0, dim = c(length(harvest.rate), niter, 10))
 male.surv <- array(0, dim = c(length(harvest.rate), niter, 10))
 real.harem <- array(0, dim = c(length(harvest.rate), niter, 10))
 real.cub.surv <- array(0, dim = c(length(harvest.rate), niter, 10))
+prob.ext <- array(0, dim = c(length(harvest.rate), niter, 10))
 
 # loop over harvest rates
 for (i in 1:length(harvest.rate)) {
@@ -66,6 +67,12 @@ for (i in 1:length(harvest.rate)) {
         male.surv[i, j, k/10]  <- sum(yy@expected.survival.rate[9:14])/6
         real.harem[i, j, k/10] <- yy@realised.harem.size
         real.cub.surv[i, j, k/10]   <- yy@realised.survival.rate[1] * (1 - yy@prob.infanticide)
+        prob.ext[i, j, k/10]  <- 1 - if(sum(yy@.Data) / sum(x.initial)>1){
+                                     1
+                                     } else{
+                                       sum(yy@.Data) / sum(x.initial)
+                                     }
+        
         
       }
       
@@ -105,6 +112,11 @@ dimnames(real.cub.surv) <- list(H = harvest.rate, Year = seq(10, 100, length = 1
 ggplot(melt(real.cub.surv)) + geom_line(aes(H, value, col = as.factor(Year))) + 
   ggtitle('Realised cub survival') + labs(y = '', col = 'Year')
 
+# plot median pop size
+prob.ext <- apply(prob.ext, c(1, 3), median)
+dimnames(prob.ext) <- list(H = harvest.rate, Year = seq(10, 100, length = 10))
+ggplot(melt(prob.ext)) + geom_line(aes(H, value, col = as.factor(Year))) + 
+  ggtitle('Extinction probability') + labs(y = '', col = 'Year')
 
 
 
