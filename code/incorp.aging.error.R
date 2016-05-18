@@ -34,7 +34,7 @@ vec.female
 if(vec[9] > 0){
   
   subadult_male.vec.final <- rep(0, 12)
-  for(i in 1:vec[9]){
+  for(t in 1:vec[9]){
     #subadult_male.vec.single <- c(0,0,0,0,0,0,1,0,0,0,0,0)
     subadult_male.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], 1-aging.error[4], aging.error[4], aging.error[4], aging.error[4], aging.error[4], aging.error[4])))
     subadult_male.vec.final <- subadult_male.vec.final + subadult_male.vec.single.random
@@ -48,7 +48,7 @@ if(vec[9] > 0){
 if(vec[10] > 0){
   
   male36_48.vec.final <- rep(0, 12)
-  for(i in 1:vec[10]){
+  for(t in 1:vec[10]){
     #male36_48.vec.single <- c(0,0,0,0,0,0,0,1,0,0,0,0)
     male36_48.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[5], 1-aging.error[5], aging.error[5], aging.error[5], aging.error[5], aging.error[5])))
     male36_48.vec.final <- male36_48.vec.final + male36_48.vec.single.random
@@ -62,7 +62,7 @@ if(vec[10] > 0){
 if(vec[11] > 0){
   
   male48_60.vec.final <- rep(0, 12)
-  for(i in 1:vec[11]){
+  for(t in 1:vec[11]){
     #male48_60.vec.single <- c(0,0,0,0,0,0,0,0,1,0,0,0)
     male48_60.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[6], aging.error[6], 1-aging.error[6], aging.error[6], aging.error[6], aging.error[6])))
     male48_60.vec.final <- male48_60.vec.final + male48_60.vec.single.random
@@ -76,7 +76,7 @@ if(vec[11] > 0){
 if(vec[12] > 0){
   
   male60_72.vec.final <- rep(0, 12)
-  for(i in 1:vec[12]){
+  for(t in 1:vec[12]){
     #male60_72.vec.single <- c(0,0,0,0,0,0,0,0,0,1,0,0)
     male60_72.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[7], aging.error[7], aging.error[7], 1-aging.error[7], aging.error[7], aging.error[7])))
     male60_72.vec.final <- male60_72.vec.final + male60_72.vec.single.random
@@ -90,7 +90,7 @@ if(vec[12] > 0){
 if(vec[13] > 0){
   
   male72_84.vec.final <- rep(0, 12)
-  for(i in 1:vec[13]){
+  for(t in 1:vec[13]){
     #male72_84.vec.single <- c(0,0,0,0,0,0,0,0,0,0,1,0)
     male72_84.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[2], aging.error[8], aging.error[8], aging.error[8], aging.error[8], 1-aging.error[8], aging.error[8])))
     male72_84.vec.final <- male72_84.vec.final + male72_84.vec.single.random
@@ -104,7 +104,7 @@ if(vec[13] > 0){
 if(vec[14] > 0){
   
   male84.vec.final <- rep(0, 12)
-  for(i in 1:vec[14]){
+  for(t in 1:vec[14]){
     #male84.vec.single <- c(0,0,0,0,0,0,0,0,0,0,0,1)
     male84.vec.single.random <- as.vector(rmultinom(1, size = 1, prob=c(rep(0,6), aging.error[9], aging.error[9], aging.error[9], aging.error[9], aging.error[9], 1-aging.error[9])))
     male84.vec.final <- male84.vec.final + male84.vec.single.random
@@ -155,7 +155,7 @@ final.male.vec <- c(0,0,final.male.vec)
 if(sum(vec[3:8]) > 0){
   
   female.vec.final <- rep(0, 12)
-  for(i in 1:sum(vec[3:8])){
+  for(t in 1:sum(vec[3:8])){
     female.vec.single <- c(1,0,0,0,0,0,0,0,0,0,0,0)
     female.vec.single.random <- as.vector(rmultinom(1, size = 1, prob = c(1-aging.error[1], 1-aging.error[1], 1-aging.error[1], 1-aging.error[1], 1-aging.error[1], 1-aging.error[1], aging.error[1], aging.error[1], aging.error[1], aging.error[1], aging.error[1], aging.error[1])))
     female.vec.final <- female.vec.final + female.vec.single.random
