@@ -3,11 +3,6 @@ library(leopard)
 library(reshape2)
 library(ggplot2)
 
-prob.ext.func <- function(x){
-  prob.extinction <- 1 - mean(x > 0)
-  return(prob.extinction)
-}
-
 # survival rates per demographic category
 ss <- c(0.3270833, 0.7197452, 0.9615385, 0.8882435, 0.9729730, 0.9382353, 0.9230769, 0.7219583, 0.9124424, 0.9642857, 1.0000000, 1.0000000, 0.9000000, 0.2857143)
 
@@ -31,7 +26,7 @@ x.initial <- c(nc  = 406,
                m84 = 246)
 
 # number of iterations for simulation
-niter <- 100
+niter <- 10
 
 # harvest rate
 harvest.rate <- seq(0, 0.6, length = 101)
@@ -51,11 +46,11 @@ selectivity <- matrix(data = c(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,  # all 
 selectivity <- t(selectivity) ; rownames(selectivity) = c("all.males", "males≥3", "males≥6", "males≥7", "all.ages",
                                                           "male.female≥7", "excl.dep.young", "only.adults", "all.males.w.females≥7")
 
-# create population size object
-population.size <- array(0, dim = c(length(harvest.rate), niter, 10))
+# create extinction probability object
+prob.ext <- array(0, dim = c(length(harvest.rate), niter, 10))
+# create final extinction prob object
+all.prob.ext <- as.data.frame(NA)
 
-# create extinction prob object
-extinction.probability <-  as.data.frame(NA)
 
 # loop over range of selectivities
 for(z in 1:nrow(selectivity)){
@@ -80,8 +75,12 @@ for(z in 1:nrow(selectivity)){
         
         # for every 10th year
         if (k %% 10 == 0) {
-          # record population size
-          population.size[i, j, k/10]  <- sum(yy@.Data)
+          # record extinction probability
+          prob.ext[i, j, k/10]  <- 1 - if(sum(yy@.Data) / sum(x.initial) > 1){
+            1
+          } else{
+            sum(yy@.Data) / sum(x.initial)
+          }
           
         }
         
@@ -93,22 +92,22 @@ for(z in 1:nrow(selectivity)){
     
   }
   
-  extinction.probability <- cbind(extinction.probability, apply(population.size, c(1, 3), prob.ext.func))
+  all.prob.ext <- cbind(all.prob.ext, apply(prob.ext, c(1, 3), median))
   
 }
 
 # clean up output and prepare for plotting
-extinction.probability[1] <- NULL
+all.prob.ext[1] <- NULL
 
-all.males             <- extinction.probability[1:101,1:10]  ; all.males$group <- rownames(selectivity)[1]
-males3                <- extinction.probability[1:101,11:20] ; males3$group    <- rownames(selectivity)[2]
-males6                <- extinction.probability[1:101,21:30] ; males6$group    <- rownames(selectivity)[3]
-males7                <- extinction.probability[1:101,31:40] ; males7$group    <- rownames(selectivity)[4]
-all.ages              <- extinction.probability[1:101,41:50] ; all.ages$group  <- rownames(selectivity)[5]
-male.female7          <- extinction.probability[1:101,51:60] ; male.female7$group  <- rownames(selectivity)[6]
-excl.dep.young        <- extinction.probability[1:101,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
-only.adults           <- extinction.probability[1:101,71:80] ; only.adults$group  <- rownames(selectivity)[8]
-all.males.w.females7  <- extinction.probability[1:101,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
+all.males             <- all.prob.ext[1:101,1:10]  ; all.males$group <- rownames(selectivity)[1]
+males3                <- all.prob.ext[1:101,11:20] ; males3$group    <- rownames(selectivity)[2]
+males6                <- all.prob.ext[1:101,21:30] ; males6$group    <- rownames(selectivity)[3]
+males7                <- all.prob.ext[1:101,31:40] ; males7$group    <- rownames(selectivity)[4]
+all.ages              <- all.prob.ext[1:101,41:50] ; all.ages$group  <- rownames(selectivity)[5]
+male.female7          <- all.prob.ext[1:101,51:60] ; male.female7$group  <- rownames(selectivity)[6]
+excl.dep.young        <- all.prob.ext[1:101,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
+only.adults           <- all.prob.ext[1:101,71:80] ; only.adults$group  <- rownames(selectivity)[8]
+all.males.w.females7  <- all.prob.ext[1:101,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
 
 all.data <- rbind(all.males, males3, males6, males7, all.ages, male.female7, excl.dep.young, only.adults, all.males.w.females7)
 colnames(all.data)[1:10] <- seq(10, 100, length = 10)
@@ -125,3 +124,4 @@ all.data.melt$group <- factor(all.data.melt$group, levels = c("all.ages", "excl.
 ggplot(all.data.melt) + geom_line(aes(H, value, col = as.factor(variable))) + 
   facet_wrap("group") +
   ggtitle('Extinction probability') + labs(y = '', col = 'Year')
+
