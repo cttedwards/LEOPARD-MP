@@ -13,6 +13,8 @@ source('utils/loader.r')
 source('utils/reader.r')
 source('params.R')
 
+source('aging_error.r')
+
 eigen.df <- data.frame()
 total.removed <- data.frame()
 pop.size <- data.frame()
@@ -20,7 +22,7 @@ pop.size <- data.frame()
 # dimensions
 
 ## number of monte carlo samples
-nreps <- 100
+nreps <- 20
 ## number of projection years
 nyr.proj <- 50
 
@@ -64,7 +66,7 @@ for (i in 1:nreps) {
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
   
   # loop forward over years
-  for (y in 2:nyr.proj) {
+  for (y in 1:nyr.proj) {
     
     # correlated deviation in survival: 
     # log-normal with cv = 0.2
@@ -78,12 +80,12 @@ for (i in 1:nreps) {
     param.sample[1:14] <- vapply(vapply(param.sample[1:14],function(x) max(x,0),numeric(1)),function(x) min(x,1),numeric(1))
     
     # define hunting scenario
-    #removals <- implementation(xx, list(trophy = list(size = 20, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
-    #                        problem_animal = list(size = 0)))
+    #removals <- implementation(xx, list(trophy = list(size = 0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
+    #                        problem_animal = list(size = 20)))
     
     # create list of sequential hunting scenarios
-    removals <- list(trophy = list(rate = 0.5, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)), 
-                     problem_animal = list(rate = 0.0))
+    removals <- list(trophy = list(rate = 0.05, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)), 
+                     problem_animal = list(rate = 0.02))
     
     removals <- harvest(xx, removals)
     
@@ -93,8 +95,9 @@ for (i in 1:nreps) {
     total.removals <- removals$trophy@kills + removals$problem_animal@kills
 
     # add recovery years (2 years on, one year off)
-    #  if(y %% 2 == 0) {
-    #    total.removals <- rep(0, 14) + removals$problem_animal@kills
+    #  if(y %% 3 == 0) {
+    #    total.removals <- rep(0, 14) 
+    #    #total.removals <- rep(0, 14) + removals$problem_animal@kills
     #  } 
     
     # calculate stochastic survival
