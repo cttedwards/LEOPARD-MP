@@ -22,7 +22,7 @@ pop.size <- data.frame()
 # dimensions
 
 ## number of monte carlo samples
-nreps <- 20
+nreps <- 100
 ## number of projection years
 nyr.proj <- 50
 
@@ -60,7 +60,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.5)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.14)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -84,8 +84,8 @@ for (i in 1:nreps) {
     #                        problem_animal = list(size = 20)))
     
     # create list of sequential hunting scenarios
-    removals <- list(trophy = list(rate = 0.05, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)), 
-                     problem_animal = list(rate = 0.02))
+    removals <- list(trophy = list(rate = 0.10, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
+                     problem_animal = list(rate = 0.0))
     
     removals <- harvest(xx, removals)
     
