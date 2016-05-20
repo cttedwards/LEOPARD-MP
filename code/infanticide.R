@@ -10,10 +10,12 @@ nfemales <- sum(c(99,80,73,45,194))
 nmales   <- sum(c(41,24,24,28,95))
 
 # create orthogonal data.frame
-#nmales   <- nmales * seq(0, 2, length = 101)
-#nfemales <- seq(100, 600, by = 100)
+nmales   <- seq(0, 500, by = 100)#nmales * seq(0, 2, length = 11)
+nfemales <- seq(100, 600, by = 100)
 
 dfr <- expand.grid(nm = nmales, nf = nfemales, sm = seq(0, 1, length = 101))
+dfr$mk <- (1 - dfr$sm) * dfr$nm
+dfr$fk <- 0
 #dfr$sm <- dfr$nm / max(dfr$nm)
 rm(nmales, nfemales)
 
@@ -30,7 +32,28 @@ number_encounters <- function(nmales, nfemales) {
 
 dfr$ne <- apply(dfr, 1, function(x) number_encounters(x[1], x[2]))
 
-ggplot(dfr) + geom_line(aes(nm, ne, col = as.factor(nf))) + ggtitle('number_encounters()')
+ggplot(dfr) + geom_line(aes(H <- 1 - sm, ne, col = as.factor(nm))) + facet_wrap(~nf) + ggtitle('number_encounters()')
+
+# number of exta encounters between males and females
+# as a result of hunting
+number_extra_encounters <- function(nmales, nfemales, mkills = 0, fkills = 0) {
+    
+    nmalesk   <- nmales - mkills
+    nfemalesk <- nfemales - fkills
+    
+    # number of extra encounters between males and females
+    #nencounters <- 2 * (nmales * nfemales / (nmales + nfemales) - nmalesk * nfemalesk / (nmalesk + nfemalesk))
+    nencounters <- 2 * nmalesk * nfemalesk / (nmalesk + nfemalesk)
+    
+    # return
+    return(nencounters)
+}
+
+dfr$nee <- apply(dfr, 1, function(x) number_extra_encounters(x[1], x[2], x[4], x[5]))
+
+ggplot(dfr) + geom_line(aes(H <- 1 - sm, nee, col = as.factor(nm))) + facet_wrap(~nf) + ggtitle('number_encounters()')
+
+
 
 # probability of at least one encounter per female
 # follows a Poisson probability
