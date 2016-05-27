@@ -1,0 +1,10 @@
+
+cd /Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Packages/leopard_backup/leopard
+
+ls
+
+R CMD build leopard
+
+R CMD install leopard
+
+R CMD check leopard
