@@ -22,7 +22,7 @@ pop.size <- data.frame()
 # dimensions
 
 ## number of monte carlo samples
-nreps <- 100
+nreps <- 20
 ## number of projection years
 nyr.proj <- 50
 
@@ -60,7 +60,7 @@ for (i in 1:nreps) {
   
   # create new object to hold leopard numbers
   # and vital rates
-  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size = 1.14)
+  xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size.min = 1.14)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -84,21 +84,27 @@ for (i in 1:nreps) {
     #                        problem_animal = list(size = 20)))
     
     # create list of sequential hunting scenarios
-    removals <- list(trophy = list(rate = 0.10, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
+    removals <- list(trophy = list(rate = 0.0, preference = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)), 
                      problem_animal = list(rate = 0.0))
     
     removals <- harvest(xx, removals)
     
     # include trophy hunting aging error 
-    #source('incorp.aging.error.r')
+    #source('incorp.aging.error.final.r')
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills
 
+    # add recovery years
+    #source('two.years.recovery.r')
+    source('three.years.recovery.r')
+    
     # add recovery years (2 years on, one year off)
-    #  if(y %% 3 == 0) {
+    #  if(y == 4) {
     #    total.removals <- rep(0, 14) 
     #    #total.removals <- rep(0, 14) + removals$problem_animal@kills
-    #  } 
+    #  }
+
+
     
     # calculate stochastic survival
     #xx <- survival(xx)
@@ -132,6 +138,7 @@ for (i in 1:nreps) {
 x.tot <- apply(x, 2:3, sum) # all individuals in population
 boxplot(x.tot, ylab = "Number of leopard", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 4000))
 axis(side = 1, at = 1:nyr.proj)
+
 
 x.tot.f <- apply(x[3:8,,], 2:3, sum) # just females
 #boxplot(x.tot.f, ylab = "Number of females", xaxt = "n", xlab = "Step", outline = FALSE, ylim = c(0, 2000))

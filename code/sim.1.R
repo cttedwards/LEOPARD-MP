@@ -26,7 +26,7 @@ x.initial <- c(nc  = 406,
                m84 = 246)
 
 # number of iterations for simulation
-niter <- 100
+niter <- 20
 
 
 harvest.rate <- seq(0, 0.4, length = 101)
