@@ -23,9 +23,9 @@ source('aging_error.r')
 
 # dimensions
 ## number of monte carlo samples
-nreps <- 5
+nreps <- 10
 ## number of projection years
-nyr.proj <- 100
+nyr.proj <- 50
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -72,7 +72,7 @@ selectivity <- t(selectivity) ; rownames(selectivity) = c("all.males", "males≥
                                                           "male.female≥7", "excl.dep.young", "only.adults", "all.males.w.females≥7")
 
 # create population size object
-population.size <- array(0, dim = c(length(harvest.rate), nreps, 10))
+population.size <- array(0, dim = c(length(harvest.rate), nreps, 5))
 
 # create extinction prob object
 extinction.probability <-  as.data.frame(NA)
@@ -82,14 +82,14 @@ extinction.probability <-  as.data.frame(NA)
 total.removed <- data.frame()
 #pop.size <- data.frame()
 
-prob.inf     <- array(0, dim = c(length(harvest.rate), nreps, 10))
+prob.inf     <- array(0, dim = c(length(harvest.rate), nreps, 5))
 prob.inf.df  <- as.data.frame(NA)
 
-cub.surv    <- array(0, dim = c(length(harvest.rate), nreps, 10))
+cub.surv    <- array(0, dim = c(length(harvest.rate), nreps, 5))
 cub.surv.df <- as.data.frame(NA)
 
 # query number killed
-total.harvested    <- array(0, dim = c(length(harvest.rate), nreps, 10))
+total.harvested    <- array(0, dim = c(length(harvest.rate), nreps, 5))
 total.harvested.df <- as.data.frame(NA)
 
 ###########################################################################################
@@ -150,10 +150,10 @@ for(z in 1:nrow(selectivity)){
         # add recovery years
         #source('two.years.recovery.r')
         #source('three.years.recovery.r')
-
+        
         # calculate stochastic survival
         xx <- survival(xx, total.removals)
-
+        
         # calculate stochastic birth
         xx <- birth(xx)
         
@@ -205,19 +205,6 @@ for(z in 1:nrow(selectivity)){
 # Plots
 ###########################################################################################
 
-# plot median probability of infanticide
-prob.inf <- apply(prob.inf, c(1, 3), median)
-dimnames(prob.inf) <- list(H = harvest.rate, Year = seq(10, 100, length = 10))
-ggplot(melt(prob.inf)) + geom_line(aes(H, value, col = as.factor(Year))) + 
-  ggtitle('Probability of infanticide') + labs(y = '', col = 'Year')
-
-# plot median cub survivorship
-cub.surv <- apply(cub.surv, c(1, 3), median)
-dimnames(cub.surv) <- list(H = harvest.rate, Year = seq(10, 100, length = 10))
-ggplot(melt(cub.surv)) + geom_line(aes(H, value, col = as.factor(Year))) + 
-  ggtitle('Expected cub survival') + labs(y = '', col = 'Year')
-
-
 ###########################################################################################
 # Cub survival
 ###########################################################################################
@@ -225,18 +212,18 @@ ggplot(melt(cub.surv)) + geom_line(aes(H, value, col = as.factor(Year))) +
 # clean up output and prepare for plotting
 cub.surv.df[1] <- NULL
 
-all.males             <- cub.surv.df[1:101,1:10]  ; all.males$group <- rownames(selectivity)[1]
-males3                <- cub.surv.df[1:101,11:20] ; males3$group    <- rownames(selectivity)[2]
-males6                <- cub.surv.df[1:101,21:30] ; males6$group    <- rownames(selectivity)[3]
-males7                <- cub.surv.df[1:101,31:40] ; males7$group    <- rownames(selectivity)[4]
-male.female6          <- cub.surv.df[1:101,41:50] ; male.female6$group  <- rownames(selectivity)[5]
-male.female7          <- cub.surv.df[1:101,51:60] ; male.female7$group  <- rownames(selectivity)[6]
-excl.dep.young        <- cub.surv.df[1:101,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
-only.adults           <- cub.surv.df[1:101,71:80] ; only.adults$group  <- rownames(selectivity)[8]
-all.males.w.females7  <- cub.surv.df[1:101,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
+all.males             <- cub.surv.df[1:101,1:5]  ; all.males$group <- rownames(selectivity)[1]
+males3                <- cub.surv.df[1:101,6:10] ; males3$group    <- rownames(selectivity)[2]
+males6                <- cub.surv.df[1:101,11:15] ; males6$group    <- rownames(selectivity)[3]
+males7                <- cub.surv.df[1:101,16:20] ; males7$group    <- rownames(selectivity)[4]
+male.female6          <- cub.surv.df[1:101,21:25] ; male.female6$group  <- rownames(selectivity)[5]
+male.female7          <- cub.surv.df[1:101,26:30] ; male.female7$group  <- rownames(selectivity)[6]
+excl.dep.young        <- cub.surv.df[1:101,31:35] ; excl.dep.young$group  <- rownames(selectivity)[7]
+only.adults           <- cub.surv.df[1:101,36:40] ; only.adults$group  <- rownames(selectivity)[8]
+all.males.w.females7  <- cub.surv.df[1:101,41:45] ; all.males.w.females7$group  <- rownames(selectivity)[9]
 
 all.data <- rbind(all.males, males3, males6, males7, male.female6, male.female7, excl.dep.young, only.adults, all.males.w.females7)
-colnames(all.data)[1:10] <- seq(10, 100, length = 10)
+colnames(all.data)[1:5] <- c(10, 20, 30, 40, 50)
 all.data$H <- c(harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate)
 
 # reshape and change factor levels
@@ -247,7 +234,7 @@ all.data.melt$group <- factor(all.data.melt$group, levels = c("excl.dep.young", 
                                                               "males≥7","male.female≥7"))
 
 # plot cub survival for multiple ages of harvest
-cbPalette <- c("#000000", "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#39e600", "#CC79A7", "#D55E00")
+cbPalette <- c("#000000", "#999999", "#E69F00", "#56B4E9", "#009E73") #, "#F0E442", "#0072B2", "#39e600", "#CC79A7", "#D55E00")
 cub.surv.plot <- ggplot(all.data.melt) + 
   geom_line(aes(H, value, color = variable)) + 
   scale_color_manual(values = cbPalette) +
@@ -268,18 +255,18 @@ pdfr(cub.surv.plot, width = 10, name = 'Cub survival')
 # clean up output and prepare for plotting
 extinction.probability[1] <- NULL
 
-all.males             <- extinction.probability[1:101,1:10]  ; all.males$group <- rownames(selectivity)[1]
-males3                <- extinction.probability[1:101,11:20] ; males3$group    <- rownames(selectivity)[2]
-males6                <- extinction.probability[1:101,21:30] ; males6$group    <- rownames(selectivity)[3]
-males7                <- extinction.probability[1:101,31:40] ; males7$group    <- rownames(selectivity)[4]
-male.female6          <- extinction.probability[1:101,41:50] ; male.female6$group  <- rownames(selectivity)[5]
-male.female7          <- extinction.probability[1:101,51:60] ; male.female7$group  <- rownames(selectivity)[6]
-excl.dep.young        <- extinction.probability[1:101,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
-only.adults           <- extinction.probability[1:101,71:80] ; only.adults$group  <- rownames(selectivity)[8]
-all.males.w.females7  <- extinction.probability[1:101,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
+all.males             <- extinction.probability[1:101,1:5]  ; all.males$group <- rownames(selectivity)[1]
+males3                <- extinction.probability[1:101,6:10] ; males3$group    <- rownames(selectivity)[2]
+males6                <- extinction.probability[1:101,11:15] ; males6$group    <- rownames(selectivity)[3]
+males7                <- extinction.probability[1:101,16:20] ; males7$group    <- rownames(selectivity)[4]
+male.female6          <- extinction.probability[1:101,21:25] ; male.female6$group  <- rownames(selectivity)[5]
+male.female7          <- extinction.probability[1:101,26:30] ; male.female7$group  <- rownames(selectivity)[6]
+excl.dep.young        <- extinction.probability[1:101,31:35] ; excl.dep.young$group  <- rownames(selectivity)[7]
+only.adults           <- extinction.probability[1:101,36:40] ; only.adults$group  <- rownames(selectivity)[8]
+all.males.w.females7  <- extinction.probability[1:101,41:45] ; all.males.w.females7$group  <- rownames(selectivity)[9]
 
 all.data <- rbind(all.males, males3, males6, males7, male.female6, male.female7, excl.dep.young, only.adults, all.males.w.females7)
-colnames(all.data)[1:10] <- seq(10, 100, length = 10)
+colnames(all.data)[1:5] <- c(10, 20, 30, 40, 50)
 all.data$H <- c(harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate)
 
 # reshape and change factor levels
@@ -290,7 +277,7 @@ all.data.melt$group <- factor(all.data.melt$group, levels = c("excl.dep.young", 
                                                               "males≥7","male.female≥7"))
 
 # plot extinction probability for multiple ages of harvest
-cbPalette <- c("#000000", "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#39e600", "#CC79A7", "#D55E00")
+cbPalette <- c("#000000", "#999999", "#E69F00", "#56B4E9", "#009E73") #, "#F0E442", "#0072B2", "#39e600", "#CC79A7", "#D55E00")
 ext.prob.plot <- ggplot(all.data.melt) + 
   geom_line(aes(H, value, color = variable)) + 
   scale_color_manual(values = cbPalette) +
@@ -303,46 +290,6 @@ ext.prob.plot <- ggplot(all.data.melt) +
 ext.prob.plot
 
 pdfr(ext.prob.plot, width = 10, name = 'extinction probability')
-
-###########################################################################################
-# Extinction probability (11)
-###########################################################################################
-
-# clean up output and prepare for plotting
-extinction.probability[1] <- NULL
-
-all.males             <- extinction.probability[1:11,1:10]  ; all.males$group <- rownames(selectivity)[1]
-males3                <- extinction.probability[1:11,11:20] ; males3$group    <- rownames(selectivity)[2]
-males6                <- extinction.probability[1:11,21:30] ; males6$group    <- rownames(selectivity)[3]
-males7                <- extinction.probability[1:11,31:40] ; males7$group    <- rownames(selectivity)[4]
-male.female6          <- extinction.probability[1:11,41:50] ; male.female6$group  <- rownames(selectivity)[5]
-male.female7          <- extinction.probability[1:11,51:60] ; male.female7$group  <- rownames(selectivity)[6]
-excl.dep.young        <- extinction.probability[1:11,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
-only.adults           <- extinction.probability[1:11,71:80] ; only.adults$group  <- rownames(selectivity)[8]
-all.males.w.females7  <- extinction.probability[1:11,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
-
-all.data <- rbind(all.males, males3, males6, males7, male.female6, male.female7, excl.dep.young, only.adults, all.males.w.females7)
-colnames(all.data)[1:10] <- seq(10, 100, length = 10)
-all.data$H <- c(harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate)
-
-# reshape and change factor levels
-all.data.melt <- melt(all.data, id = c("group", "H"))
-all.data.melt$group <- factor(all.data.melt$group, levels = c("excl.dep.young", "only.adults",
-                                                              "all.males", "all.males.w.females≥7", 
-                                                              "males≥3", "males≥6", "male.female≥6",
-                                                              "males≥7","male.female≥7"))
-
-# plot extinction probability for multiple ages of harvest
-cbPalette <- c("#000000", "#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#39e600", "#CC79A7", "#D55E00")
-ggplot(all.data.melt) + 
-  geom_line(aes(H, value, color = variable)) + 
-  scale_color_manual(values = cbPalette) +
-  facet_wrap("group") +
-  theme_bw() +
-  theme(strip.background = element_rect(fill="white")) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  ggtitle('Extinction probability') + 
-  labs(y = '', col = 'Year')
 
 ###########################################################################################
 # Total harvested
