@@ -14,7 +14,8 @@ source('utils/saver.r')
 source('utils/loader.r')
 source('utils/reader.r')
 source('utils/pdfr.r')
-source('params.R')
+#source('params.R')
+source('params.kzn.R')
 source('aging_error.r')
 
 ###########################################################################################
@@ -33,7 +34,7 @@ rownames(params) <- names(param)
 colnames(params) <- 1:nreps
 
 # initial population size (Sabi Sands average population structure estimate from 2013-2015; using 70 leopard)
-x.initial <- c(nc  = 14,
+#x.initial <- c(nc  = 14,
                nj  = 7,
                saf = 3,
                f36 = 2,
@@ -47,6 +48,22 @@ x.initial <- c(nc  = 14,
                m60 = 3,
                m72 = 3,
                m84 = 9)
+
+# initial population size (Phinda average population structure estimate from 2002-2012; using 30 leopard)
+x.initial <- c(nc  = 7,
+               nj  = 5,
+               saf = 2,
+               f36 = 1,
+               f48 = 1,
+               f60 = 1,
+               f72 = 1,
+               f84 = 3,
+               sam = 3,
+               m36 = 1,
+               m48 = 1,
+               m60 = 1,
+               m72 = 1,
+               m84 = 2)
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
