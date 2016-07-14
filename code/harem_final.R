@@ -4,11 +4,11 @@
 library(ggplot2)
 library(plyr)
 
-source('utils/pdfr.r')
-
 # numbers (mature)
-nfemales <- sum(c(92,67,63,62,93,469))
-nmales   <- sum(c(39,62,47,78,84,246))
+nfemales <- sum(c(67,63,62,93,469))
+nmales   <- sum(c(62,47,78,84,246))
+
+mean.smales <- sum(c(0.9642857, 1.0000000, 1.0000000, 0.9000000, 0.2857143) * c(62,47,78,84,246)) / sum(c(62,47,78,84,246))
 
 
 nfemales
@@ -100,11 +100,13 @@ dfr$sm <- 0.9
 # encounter rate per harem
 ecr <- function(sm, nm, nf, beta) {
     
+    nm <- nm * sm
+    
     hs <- hsz(nm / nf, beta)
     
     nh <- nf / hs
     
-    2 * nh * nm / (nm + nh) * (1 / nh)
+    2 * nm / (nm + nh)
 }
 
 
@@ -139,7 +141,7 @@ dev.off()
 # 0.33 = 1 - ((1 - csurv) + (1 - pinf) - intersect)
 
 # csurv (if intersect = 0)
-csurv <- 0.3270833 / (1 - pin(sm = 0.9, nm = 556, nf = 846, beta = betahat))
+csurv <- 0.3270833 / (1 - pin(sm = mean.smales, nm = 517, nf = 754, beta = betahat))
 
 # check
 csv <- function(sm, nm, nf, beta) csurv * (1 - pin(sm, nm, nf, beta))
