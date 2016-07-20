@@ -4,7 +4,7 @@
 ###########################################################################################
 
 rm(list = ls())
-setwd("/Users/RossTyzackPitman/Documents/OneDrive/PhD/Data/R_Database/R_PROJECTS/PhD_Chapter3/MSE_Paper/LEOPARD-MP/code")
+setwd("/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/LEOPARD-MP/code")
 
 library(leopard)
 library(ggplot2)
@@ -14,8 +14,8 @@ source('utils/saver.r')
 source('utils/loader.r')
 source('utils/reader.r')
 source('utils/pdfr.r')
-#source('params.R')
-source('params.kzn.R')
+source('params.R')
+#source('params.kzn.R')
 source('aging_error.r')
 
 ###########################################################################################
@@ -34,7 +34,7 @@ rownames(params) <- names(param)
 colnames(params) <- 1:nreps
 
 # initial population size (Sabi Sands average population structure estimate from 2013-2015; using 70 leopard)
-#x.initial <- c(nc  = 14,
+x.initial <- c(nc  = 14,
                nj  = 7,
                saf = 3,
                f36 = 2,
@@ -50,20 +50,20 @@ colnames(params) <- 1:nreps
                m84 = 9)
 
 # initial population size (Phinda average population structure estimate from 2002-2012; using 30 leopard)
-x.initial <- c(nc  = 7,
-               nj  = 5,
-               saf = 2,
-               f36 = 1,
-               f48 = 1,
-               f60 = 1,
-               f72 = 1,
-               f84 = 3,
-               sam = 3,
-               m36 = 1,
-               m48 = 1,
-               m60 = 1,
-               m72 = 1,
-               m84 = 2)
+#x.initial <- c(nc  = 7,
+#               nj  = 5,
+#               saf = 2,
+#               f36 = 1,
+#               f48 = 1,
+#               f60 = 1,
+#               f72 = 1,
+#               f84 = 3,
+#               sam = 3,
+#               m36 = 1,
+#               m48 = 1,
+#               m60 = 1,
+#               m72 = 1,
+#               m84 = 2)
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
@@ -136,7 +136,7 @@ for(z in 1:nrow(selectivity)){
       
       # create new object to hold leopard numbers
       # and vital rates
-      xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19], harem.size.min = 1.14)
+      xx <- leopard(x.initial, param.sample[1:14], param.sample[15:19])
       
       # assign multiplicative maternal effects
       xx@maternal.effect[] <- matrix(maternal.effects, nrow=2, ncol=5, byrow=T)
@@ -175,15 +175,19 @@ for(z in 1:nrow(selectivity)){
         xx <- birth(xx)
         
         # for every 10th year
-        if (y %% 10 == 0) {
-          # record probability of infanticide
-          # and cub survival
-          prob.inf[k, i, y/10]   <- xx@prob.infanticide
-          cub.surv[k, i, y/10]   <- xx@expected.survival.rate[1] * (1 - xx@prob.infanticide)
-          population.size[k, i, y/10]  <- sum(xx@.Data)
-          total.harvested[k, i, y/10]  <- sum(total.removals)
-          
-        }
+        #if (y %% 10 == 0) {
+        #  
+        #  # record probability of infanticide
+        #  # and cub survival
+        #  prob.inf[k, i, y/10]   <- xx@prob.infanticide
+        #  cub.surv[k, i, y/10]   <- xx@expected.survival.rate[1] * (1 - xx@prob.infanticide)
+        #  population.size[k, i, y/10]  <- sum(xx@.Data)
+        #  total.harvested[k, i, y/10]  <- sum(total.removals)
+        #  
+        #}
+        
+        population.size[k, i, ]  <- sum(xx@.Data)
+        total.harvested[k, i, ]  <- sum(total.removals)
         
         #eigen <- Re(eigen(tmatrix(xx))$values)[1]
         #print(Re(eigen(tmatrix(xx))$values)[1])
@@ -205,18 +209,22 @@ for(z in 1:nrow(selectivity)){
   }
   
   extinction.probability <- cbind(extinction.probability, apply(population.size, c(1, 3), prob.ext.func))
-  total.harvested.df <- cbind(total.harvested.df, apply(total.harvested, c(1, 3), mean))
-  cub.surv.df <- cbind(cub.surv.df, apply(cub.surv, c(1, 3), median))
-  prob.inf.df <- cbind(prob.inf.df, apply(prob.inf, c(1, 3), median))
+  total.harvested.df     <- cbind(total.harvested.df, apply(total.harvested, c(1, 3), mean))
+  #cub.surv.df <- cbind(cub.surv.df, apply(cub.surv, c(1, 3), median))
+  #prob.inf.df <- cbind(prob.inf.df, apply(prob.inf, c(1, 3), median))
   
 }
 
 
+# save output
+saver(extinction.probability,
+      total.harvested.df,
+      cub.surv.df,
+      prob.inf.df,
+      name = 'model_run_2')
 
-
-
-
-
+loader('model_run_1')
+loader('model_run_2')
 
 ###########################################################################################
 # Plots
@@ -315,18 +323,18 @@ pdfr(ext.prob.plot, width = 10, name = 'extinction probability')
 # clean up output and prepare for plotting
 total.harvested.df[1] <- NULL
 
-all.males             <- total.harvested.df[1:11,1:10]  ; all.males$group <- rownames(selectivity)[1]
-males3                <- total.harvested.df[1:11,11:20] ; males3$group    <- rownames(selectivity)[2]
-males6                <- total.harvested.df[1:11,21:30] ; males6$group    <- rownames(selectivity)[3]
-males7                <- total.harvested.df[1:11,31:40] ; males7$group    <- rownames(selectivity)[4]
-male.female6          <- total.harvested.df[1:11,41:50] ; male.female6$group  <- rownames(selectivity)[5]
-male.female7          <- total.harvested.df[1:11,51:60] ; male.female7$group  <- rownames(selectivity)[6]
-excl.dep.young        <- total.harvested.df[1:11,61:70] ; excl.dep.young$group  <- rownames(selectivity)[7]
-only.adults           <- total.harvested.df[1:11,71:80] ; only.adults$group  <- rownames(selectivity)[8]
-all.males.w.females7  <- total.harvested.df[1:11,81:90] ; all.males.w.females7$group  <- rownames(selectivity)[9]
+all.males             <- total.harvested.df[1:101,1:5]  ; all.males$group <- rownames(selectivity)[1]
+males3                <- total.harvested.df[1:101,6:10] ; males3$group    <- rownames(selectivity)[2]
+males6                <- total.harvested.df[1:101,11:15] ; males6$group    <- rownames(selectivity)[3]
+males7                <- total.harvested.df[1:101,16:20] ; males7$group    <- rownames(selectivity)[4]
+male.female6          <- total.harvested.df[1:101,21:25] ; male.female6$group  <- rownames(selectivity)[5]
+male.female7          <- total.harvested.df[1:101,26:30] ; male.female7$group  <- rownames(selectivity)[6]
+excl.dep.young        <- total.harvested.df[1:101,31:35] ; excl.dep.young$group  <- rownames(selectivity)[7]
+only.adults           <- total.harvested.df[1:101,36:40] ; only.adults$group  <- rownames(selectivity)[8]
+all.males.w.females7  <- total.harvested.df[1:101,41:45] ; all.males.w.females7$group  <- rownames(selectivity)[9]
 
 all.data <- rbind(all.males, males3, males6, males7, male.female6, male.female7, excl.dep.young, only.adults, all.males.w.females7)
-colnames(all.data)[1:10] <- seq(10, 100, length = 10)
+colnames(all.data)[1:5] <- c(10, 20, 30, 40, 50)
 all.data$H <- c(harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate, harvest.rate)
 
 # reshape and change factor levels
