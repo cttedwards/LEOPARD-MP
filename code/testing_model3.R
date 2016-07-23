@@ -3,7 +3,10 @@
 ###########################################################################################
 
 rm(list = ls())
+<<<<<<< HEAD
+=======
 setwd("/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/LEOPARD-MP/code")
+>>>>>>> origin/master
 
 library(leopard)
 library(ggplot2)
@@ -60,7 +63,11 @@ x <- array(NA,dim=c(length(x.initial.multiplier), length(x.initial),nreps,nyr.pr
 dimnames(x) <- list(multiplier = x.initial.multiplier, age.class = names(x.initial),rep = 1:nreps, year = 1:nyr.proj)
 
 # harvest rate
+<<<<<<< HEAD
+harvest.rate <- 0.0
+=======
 harvest.rate <- 1
+>>>>>>> origin/master
 
 # setup selectivity object
 selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
