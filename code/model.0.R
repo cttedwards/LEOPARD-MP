@@ -44,7 +44,7 @@ param[1] <- 0.4520594
 
 # dimensions
 ## number of monte carlo samples
-nreps <- 10
+nreps <- 1000
 ## number of projection years
 nyr.proj <- 50
 
@@ -218,7 +218,10 @@ boxplot(x.tot,
 axis(side = 1, at = 1:nyr.proj)
 dev.off()
 
-
+par(bg = NA) 
+#par(bg = "white") 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.0.pdf', 
+    width = 8, height = 5)
 boxplot(t(eigen.value),
         ylab = "Eigen value",
         xaxt = "n",
@@ -227,4 +230,5 @@ boxplot(t(eigen.value),
         outline = FALSE)
 axis(side = 1, at = 1:nyr.proj)
 abline(h = 1, col = 2, lty = 2)
+dev.off()
 

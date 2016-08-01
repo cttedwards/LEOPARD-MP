@@ -24,16 +24,16 @@ prob.ext.func <- function(x){
 }
 
 ###########################################################################################
-# Model.19 Description
+# Model.29 Description
 ###########################################################################################
 
 # Site parameters         - Sabi Sands
 # Harvest scenario        - ≥ 7 year males
-# Porportion removed      - 1
+# Porportion removed      - 0.10
 # Problem animal control  - 0.01
 # Non-compliance          - 0.01
 # Aging error             - 0.09
-# Recovery years          - NA
+# Recovery years          - 2 years recovery
 
 ###########################################################################################
 # Setup model objects
@@ -96,7 +96,7 @@ dimnames(x) <- list(age.class = names(x.initial),rep = 1:nreps, year = 1:nyr.pro
 x[,,2:nyr.proj] <- NA
 
 # harvest rate
-harvest.rate <- 1
+harvest.rate <- 0.09
 
 # setup selectivity object
 selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -142,7 +142,7 @@ for (i in 1:nreps) {
     removals <- list(trophy         = list(rate = harvest.rate, preference = selectivity), 
                      problem_animal = list(rate = 0.01),
                      noncompliance  = list(rate = 0.01),
-                     aging_error    = list(rate = 0.09, preference = only.males))
+                     aging_error    = list(rate = 0.01, preference = only.males))
     
     removals <- harvest(xx, removals)
     
@@ -152,7 +152,7 @@ for (i in 1:nreps) {
     total.removals <- removals$trophy@kills + removals$problem_animal@kills + removals$noncompliance@kills + removals$aging_error@kills
     
     # add recovery years
-    #source('two.years.recovery.r')
+    source('two.years.recovery.r')
     #source('three.years.recovery.r')
     
     # calculate stochastic survival
@@ -189,7 +189,7 @@ dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
 par(bg = NA) 
 #par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.19.pdf', 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.29.pdf', 
     width = 8, height = 5)
 boxplot(t(eigen.value),
         ylab = "Eigen value",
@@ -200,3 +200,4 @@ boxplot(t(eigen.value),
 axis(side = 1, at = 1:nyr.proj)
 abline(h = 1, col = 2, lty = 2)
 dev.off()
+

@@ -39,9 +39,6 @@ prob.ext.func <- function(x){
 # Setup model objects
 ###########################################################################################
 
-# query objects
-eigen.df <- data.frame()
-
 # unadjusted cub survival
 param[1] <- 0.4520594
 
@@ -50,6 +47,9 @@ param[1] <- 0.4520594
 nreps <- 1000
 ## number of projection years
 nyr.proj <- 50
+
+# query objects
+eigen.value <- matrix(ncol = nreps, nrow = nyr.proj)
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -88,7 +88,7 @@ x.initial <- c(nc  = 14,
 #m72 = 1,
 #m84 = 2)
 
-x.initial <- x.initial * 15 # try different multiples of x.initial (e.g., 5, 10, 20)
+x.initial <- x.initial * 15 
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
@@ -119,8 +119,14 @@ for (i in 1:nreps) {
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow = 2, ncol = 5, byrow = T)
   
+  # record initial numbers
+  x[,i,1] <- xx
+  
   # loop forward over years
-  for (y in 1:nyr.proj) {
+  for (y in 2:nyr.proj) {
+    
+    # total numbers
+    xx.t0 <- sum(xx)
     
     # correlated deviation in survival: 
     # log-normal with cv = 0.2
@@ -149,9 +155,6 @@ for (i in 1:nreps) {
     source('two.years.recovery.r')
     #source('three.years.recovery.r')
     
-    # calculate stochastic birth
-    xx <- birth(xx)
-    
     # calculate stochastic survival
     xx <- survival(xx, total.removals)
     
@@ -163,47 +166,37 @@ for (i in 1:nreps) {
     # step forward
     xx <- transition(xx)
     
+    # calculate stochastic birth
+    xx <- birth(xx)
+    
     # record numbers
     x[,i,y] <- xx
     
-    eigen.df <- rbind(eigen.df, eigen)
+    # calculate eigen value
+    xx.t1 <- sum(xx)
+    
+    eigen.value[y, i] <- xx.t1 / xx.t0
     
   }
   
 }
 
-#mean(eigen.df[,1])
+dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
 ###########################################################################################
 # Plot
 ###########################################################################################
 
-# probability of extinction
-x.tot <- apply(x, 2:3, prob.ext.func)
 par(bg = NA) 
 #par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Extinction.Prob.Model.9.pdf', 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.9.pdf', 
     width = 8, height = 5)
-boxplot(x.tot,
-        ylab = "Extinction Probability",
+boxplot(t(eigen.value),
+        ylab = "Eigen value",
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,1),
+        ylim = c(0,1.3),
         outline = FALSE)
 axis(side = 1, at = 1:nyr.proj)
-dev.off()
-
-# total popualtion size
-x.tot <- apply(x, 2:3, sum)
-par(bg = NA) 
-#par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.9.pdf', 
-    width = 8, height = 5)
-boxplot(x.tot,
-        ylab = "Population Size",
-        xaxt = "n",
-        xlab = "Year",
-        ylim = c(0,1500),
-        outline = FALSE)
-axis(side = 1, at = 1:nyr.proj)
+abline(h = 1, col = 2, lty = 2)
 dev.off()
