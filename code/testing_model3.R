@@ -3,10 +3,10 @@
 ###########################################################################################
 
 rm(list = ls())
-<<<<<<< HEAD
-=======
+#<<<<<<< HEAD
+#=======
 setwd("/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/LEOPARD-MP/code")
->>>>>>> origin/master
+#>>>>>>> origin/master
 
 library(leopard)
 library(ggplot2)
@@ -31,7 +31,7 @@ param[1] <- 0.4610291
 
 # dimensions
 ## number of monte carlo samples
-nreps <- 100
+nreps <- 1000
 ## number of projection years
 nyr.proj <- 50
 
@@ -56,18 +56,18 @@ x.initial <- c(nc  = 14,
                m72 = 3,
                m84 = 9)
 
-x.initial.multiplier <- c(1, 5, 10, 20)
+x.initial.multiplier <- c(1, 2, 3, 4, 5, 10, 15, 20)
 
 # population projection array
 x <- array(NA,dim=c(length(x.initial.multiplier), length(x.initial),nreps,nyr.proj))
 dimnames(x) <- list(multiplier = x.initial.multiplier, age.class = names(x.initial),rep = 1:nreps, year = 1:nyr.proj)
 
 # harvest rate
-<<<<<<< HEAD
-harvest.rate <- 0.0
-=======
-harvest.rate <- 1
->>>>>>> origin/master
+#<<<<<<< HEAD
+#harvest.rate <- 0.0
+#=======
+harvest.rate <- 0
+#>>>>>>> origin/master
 
 # setup selectivity object
 selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -76,7 +76,7 @@ selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
 # Run model
 ###########################################################################################
 
-for (m in 1:4) {
+for (m in 1:8) {
 # projection
 for (i in 1:nreps) {
   

@@ -44,12 +44,13 @@ param[1] <- 0.4520594
 
 # dimensions
 ## number of monte carlo samples
-nreps <- 100
+nreps <- 1000
 ## number of projection years
 nyr.proj <- 50
 
 # query objects
 eigen.value <- matrix(ncol = nreps, nrow = nyr.proj)
+harvest.value <- matrix(ncol = nreps, nrow = nyr.proj)
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -176,27 +177,68 @@ for (i in 1:nreps) {
     xx.t1 <- sum(xx)
     
     eigen.value[y, i] <- xx.t1 / xx.t0
+    harvest.value[y, i] <- sum(total.removals)
     
   }
   
 }
 
 dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
+dimnames(harvest.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
+
+saver(x,
+      eigen.value,
+      name = 'model.1')
 
 ###########################################################################################
 # Plot
 ###########################################################################################
+
+loader('model.1')
+
+# average growth rate
+mean(eigen.value, na.rm = TRUE)
+
+# total popualtion size
+x.tot <- apply(x, 2:3, sum)
+par(bg = NA) 
+#par(bg = "white") 
+cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.1.pdf', 
+    width = 8, height = 5)
+boxplot(x.tot,
+        ylab = "Population Size",
+        xaxt = "n",
+        xlab = "Year",
+        ylim = c(0,2000),
+        outline = FALSE)
+title("Hunting = 100% males \u2265 7 yrs", line = -2)
+axis(side = 1, at = 1:nyr.proj)
+dev.off()
 
 par(bg = NA) 
 #par(bg = "white") 
 pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.1.pdf', 
     width = 8, height = 5)
 boxplot(t(eigen.value),
-        ylab = "Eigen value",
+        ylab = expression(paste("Growth rate (", lambda, ")")),
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0.6,1.3),
+        ylim = c(0.7,1.2),
         outline = FALSE)
 axis(side = 1, at = 1:nyr.proj)
-abline(h = 1, col = 2, lty = 2)
+abline(h = 1, col = 2, lty = 1)
+dev.off()
+
+par(bg = NA) 
+#par(bg = "white") 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Harvest.Value.Model.1.pdf', 
+    width = 8, height = 5)
+boxplot(t(harvest.value),
+        ylab = "Number harvested",
+        xaxt = "n",
+        xlab = "Year",
+        #ylim = c(0.7,1.2),
+        outline = FALSE)
+axis(side = 1, at = 1:nyr.proj)
+#abline(h = 1, col = 2, lty = 1)
 dev.off()

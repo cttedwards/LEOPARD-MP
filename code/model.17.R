@@ -183,9 +183,34 @@ for (i in 1:nreps) {
 
 dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
+saver(x,
+      eigen.value,
+      name = 'model.17')
+
 ###########################################################################################
 # Plot
 ###########################################################################################
+
+loader('model.17')
+
+# average growth rate
+mean(eigen.value, na.rm = TRUE)
+
+# total popualtion size
+x.tot <- apply(x, 2:3, sum)
+par(bg = NA) 
+#par(bg = "white") 
+cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.17.pdf', 
+          width = 8, height = 5)
+boxplot(x.tot,
+        ylab = "Population Size",
+        xaxt = "n",
+        xlab = "Year",
+        ylim = c(0,2000),
+        outline = FALSE)
+title("Hunting = 100% males \u2265 4 yrs", line = -2)
+axis(side = 1, at = 1:nyr.proj)
+dev.off()
 
 par(bg = NA) 
 #par(bg = "white") 

@@ -49,7 +49,8 @@ nreps <- 1000
 nyr.proj <- 50
 
 # query objects
-eigen.value <- matrix(ncol = nreps, nrow = nyr.proj)
+eigen.value   <- matrix(ncol = nreps, nrow = nyr.proj)
+harvest.value <- matrix(ncol = nreps, nrow = nyr.proj)
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -88,7 +89,7 @@ x.initial <- c(nc  = 14,
 #m72 = 1,
 #m84 = 2)
 
-x.initial <- x.initial * 15 
+x.initial <- x.initial * 15
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
@@ -175,17 +176,28 @@ for (i in 1:nreps) {
     # calculate eigen value
     xx.t1 <- sum(xx)
     
-    eigen.value[y, i] <- xx.t1 / xx.t0
+    eigen.value[y, i]   <- xx.t1 / xx.t0
+    harvest.value[y, i] <- sum(total.removals)
     
   }
   
 }
 
-dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
+dimnames(eigen.value)   <- list(year = 1:nyr.proj, iter = 1:nreps)
+dimnames(harvest.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
+
+saver(x,
+      eigen.value,
+      name = 'model.0')
 
 ###########################################################################################
 # Plot
 ###########################################################################################
+
+loader('model.0')
+
+# average growth rate
+mean(eigen.value, na.rm = TRUE)
 
 # probability of extinction
 x.tot <- apply(x, 2:3, sum)
@@ -207,14 +219,15 @@ dev.off()
 x.tot <- apply(x, 2:3, sum)
 par(bg = NA) 
 #par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.0.pdf', 
+cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.0.pdf', 
     width = 8, height = 5)
 boxplot(x.tot,
         ylab = "Population Size",
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,1500),
+        ylim = c(0,2000),
         outline = FALSE)
+title("Hunting = 0%", line = -2)
 axis(side = 1, at = 1:nyr.proj)
 dev.off()
 
@@ -223,12 +236,28 @@ par(bg = NA)
 pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.0.pdf', 
     width = 8, height = 5)
 boxplot(t(eigen.value),
-        ylab = "Eigen value",
+        ylab = expression(paste("Growth rate (", lambda, ")")),
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,1.3),
+        ylim = c(0.7,1.2),
         outline = FALSE)
 axis(side = 1, at = 1:nyr.proj)
-abline(h = 1, col = 2, lty = 2)
+abline(h = 1, col = 2, lty = 1)
 dev.off()
+
+
+par(bg = NA) 
+#par(bg = "white") 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Harvest.Value.Model.0.pdf', 
+    width = 8, height = 5)
+boxplot(t(harvest.value),
+        ylab = "Number harvested",
+        xaxt = "n",
+        xlab = "Year",
+        #ylim = c(0.7,1.2),
+        outline = FALSE)
+axis(side = 1, at = 1:nyr.proj)
+#abline(h = 1, col = 2, lty = 1)
+dev.off()
+
 
