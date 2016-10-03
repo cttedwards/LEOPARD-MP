@@ -150,13 +150,21 @@ x <- apply(x, c(1, 3, 4), sum)
 # total popualtion size
 x.tot <- apply(x, c(1,3), mean)
 
+x.tot <- melt(x.tot)
+
+#levels(as.factor(x.tot$multiplier))
+
+x.tot$multiplier <- factor(as.factor(x.tot$multiplier), levels = rev(levels(as.factor(x.tot$multiplier))))
+
+#levels(x.tot$multiplier)
+
 par(bg = NA) 
 #par(bg = "white") 
 pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Sensitivity.pdf', 
-    width = 7, height = 5)
+    width = 8, height = 5)
 
 pop.size.sensitivity <- 
-  ggplot(melt(x.tot)) + 
+  ggplot(x.tot) + 
   geom_line(aes(year, value, col = as.factor(multiplier)), linetype = "solid") +
   xlab("Year\n") + ylab("Population size\n") +
   theme_bw() + theme(strip.background = element_rect(fill = "white")) +
@@ -168,7 +176,7 @@ pop.size.sensitivity <-
     axis.title = element_text(size = 14),
     strip.text.x = element_text(size = 14)
   ) +
-  theme(legend.position = "top") +
+  #theme(legend.position = c(.5, .5)) +
   theme(legend.title = element_blank()) +
   theme(legend.key = element_rect(colour = NA)) +
   scale_colour_grey() +
