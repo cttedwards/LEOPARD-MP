@@ -24,12 +24,12 @@ prob.ext.func <- function(x){
 }
 
 ###########################################################################################
-# Model.19 Description
+# Model.32 Description
 ###########################################################################################
 
 # Site parameters         - Sabi Sands
-# Harvest scenario        - ≥ 7 year males
-# Porportion removed      - 1
+# Harvest scenario        - ≥7 years old
+# Porportion removed      - 0.90
 # Problem animal control  - 0.01
 # Non-compliance          - 0.01
 # Aging error             - 0.09
@@ -96,7 +96,7 @@ dimnames(x) <- list(age.class = names(x.initial),rep = 1:nreps, year = 1:nyr.pro
 x[,,2:nyr.proj] <- NA
 
 # harvest rate
-harvest.rate <- 1
+harvest.rate <- 0.89
 
 # setup selectivity object
 selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -183,20 +183,45 @@ for (i in 1:nreps) {
 
 dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
+saver(x,
+      eigen.value,
+      name = 'Model.32')
+
 ###########################################################################################
 # Plot
 ###########################################################################################
 
+loader('Model.32')
+
+# average growth rate
+mean(eigen.value, na.rm = TRUE)
+
+# total popualtion size
+x.tot <- apply(x, 2:3, sum)
 par(bg = NA) 
 #par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.19.pdf', 
-    width = 8, height = 5)
-boxplot(t(eigen.value),
-        ylab = "Eigen value",
+cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.32.pdf', 
+          width = 8, height = 5)
+boxplot(x.tot,
+        ylab = "Population Size",
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,1.3),
+        ylim = c(0,2000),
+        outline = FALSE)
+title("Hunting = 100% males \u2265 7 yrs; Aging error = 9%;\n Non-compliance = 1%; Problem animal control = 1%", line = -3)
+axis(side = 1, at = 1:nyr.proj)
+dev.off()
+
+par(bg = NA) 
+#par(bg = "white") 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.32.pdf', 
+    width = 8, height = 5)
+boxplot(t(eigen.value),
+        ylab = expression(paste("Growth rate (", lambda, ")")),
+        xaxt = "n",
+        xlab = "Year",
+        ylim = c(0.7,1.2),
         outline = FALSE)
 axis(side = 1, at = 1:nyr.proj)
-abline(h = 1, col = 2, lty = 2)
+abline(h = 1, col = 2, lty = 1)
 dev.off()
