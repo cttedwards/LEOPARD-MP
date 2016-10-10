@@ -29,10 +29,10 @@ prob.ext.func <- function(x){
 
 # Site parameters         - Sabi Sands
 # Harvest scenario        - ≥ 7 year males
-# Porportion removed      - 0.01
-# Problem animal control  - 0.01
-# Non-compliance          - 0.01
-# Aging error             - 0.001
+# Porportion removed      - 0.09 (10 percent)
+# Problem animal control  - 0.00
+# Non-compliance          - 0.00
+# Aging error             - 0.01
 # Recovery years          - NA
 
 ###########################################################################################
@@ -208,7 +208,7 @@ boxplot(x.tot,
         xlab = "Year",
         ylim = c(0,2000),
         outline = FALSE)
-title("Hunting = 1% males \u2265 7 yrs; Aging error = 1%;\n Non-compliance = 0%; Problem animal control = 0%", line = -3)
+title("Hunting = 10% males \u2265 7 yrs; Aging error = 1%;\n Non-compliance = 0%; Problem animal control = 0%", line = -3)
 axis(side = 1, at = 1:nyr.proj)
 dev.off()
 
