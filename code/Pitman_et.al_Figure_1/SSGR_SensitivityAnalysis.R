@@ -3,7 +3,7 @@
 ###########################################################################################
 
 rm(list = ls())
-setwd("/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/LEOPARD-MP/code")
+setwd("..")
 
 library(leopard)
 library(ggplot2)
