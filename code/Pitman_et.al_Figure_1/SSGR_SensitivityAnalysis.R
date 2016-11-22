@@ -11,8 +11,6 @@ library(reshape2)
 
 source('utils/saver.r')
 source('utils/loader.r')
-source('utils/reader.r')
-source('utils/pdfr.r')
 source('params.R')
 source('aging_error.r')
 
@@ -68,7 +66,7 @@ selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
 # Run model
 ###########################################################################################
 
-for (m in 1:8) {
+for (m in 1:length(x.initial.multiplier)) {
   
   # projection
   for (i in 1:nreps) {
@@ -147,7 +145,7 @@ loader("SSGR_SensitivityAnalysis")
 # sum across age classes
 x <- apply(x, c(1, 3, 4), sum)
 
-# total popualtion size
+# total population size
 x.tot <- apply(x, c(1,3), mean)
 
 x.tot <- melt(x.tot)

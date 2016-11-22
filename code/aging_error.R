@@ -1,7 +1,4 @@
 
-## Aging Error
-source('utils/saver.r')
-
 # proportion of age/sex classes misidentified (Balme et al. 2012)
 aging.error <- c(id.f    = 0.32,    # proportion of females misidentified as males
                  id.m    = 0.31,    # proportion of males misidentified as females
