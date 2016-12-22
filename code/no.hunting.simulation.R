@@ -14,17 +14,9 @@ source('utils/loader.r')
 source('utils/reader.r')
 source('utils/pdfr.r')
 source('params.R')
-#source('params.kzn.R')
-source('aging_error.r')
-
-# extinction probability function
-prob.ext.func <- function(x){
-  prob.extinction <- 1 - mean(x > 0)
-  return(prob.extinction)
-}
 
 ###########################################################################################
-# Model.0 Description
+# Model Description
 ###########################################################################################
 
 # Site parameters         - Sabi Sands
@@ -46,7 +38,7 @@ param[1] <- 0.4520594
 ## number of monte carlo samples
 nreps <- 10
 ## number of projection years
-nyr.proj <- 60
+nyr.proj <- 50
 
 # query objects
 eigen.value   <- matrix(ncol = nreps, nrow = nyr.proj)
@@ -112,9 +104,9 @@ for (i in 1:nreps) {
   
   # loop forward over years
   for (y in 2:nyr.proj) {
-      
-      # total numbers
-      xx.t0 <- sum(xx)
+    
+    # total numbers
+    xx.t0 <- sum(xx)
     
     # correlated deviation in survival: 
     # log-normal with cv = 0.2
@@ -135,13 +127,6 @@ for (i in 1:nreps) {
     removals <- harvest(xx, removals)
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills + removals$noncompliance@kills + removals$aging_error@kills
-    
-    # run initialisation
-    #source('initialisation.r')
-    
-    # add recovery years
-    #source('two.years.recovery.r')
-    #source('three.years.recovery.r')
     
     # calculate stochastic survival
     xx <- survival(xx, total.removals)
@@ -173,43 +158,10 @@ for (i in 1:nreps) {
 dimnames(eigen.value)   <- list(year = 1:nyr.proj, iter = 1:nreps)
 dimnames(harvest.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
-saver(x,
-      eigen.value,
-      name = 'model.0')
-
-###########################################################################################
-# Plot
-###########################################################################################
-
-loader('model.0')
-
-# average growth rate
-mean(eigen.value, na.rm = TRUE)
-
-# probability of extinction
-x.tot <- apply(x, 2:3, sum)
-x.tot <- apply(x.tot, 2, prob.ext.func)
-par(bg = NA) 
-#par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Extinction.Prob.Model.0.pdf', 
-    width = 8, height = 5)
-plot(x.tot[11:nyr.proj],
-        ylab = "Extinction Probability",
-        xaxt = "n",
-        xlab = "Year",
-        ylim = c(0,1),
-        outline = FALSE)
-axis(side = 1, at = 1:nyr.proj)
-dev.off()
-
 # total popualtion size
 x.tot <- apply(x, 2:3, sum)
-par(bg = NA) 
-#par(bg = "white") 
-cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.0.pdf', 
-    width = 8, height = 5)
+
 boxplot(x.tot,
-#boxplot(x.tot[,11:nyr.proj],
         ylab = "Population Size",
         xaxt = "n",
         xlab = "Year",
@@ -217,35 +169,4 @@ boxplot(x.tot,
         outline = FALSE)
 title("Hunting = 0%", line = -2)
 axis(side = 1, at = 1:nyr.proj)
-dev.off()
-
-par(bg = NA) 
-#par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.0.pdf', 
-    width = 8, height = 5)
-boxplot(t(eigen.value),
-        ylab = expression(paste("Growth rate (", lambda, ")")),
-        xaxt = "n",
-        xlab = "Year",
-        ylim = c(0.7,1.2),
-        outline = FALSE)
-axis(side = 1, at = 1:nyr.proj)
-abline(h = 1, col = 2, lty = 1)
-dev.off()
-
-
-par(bg = NA) 
-#par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Harvest.Value.Model.0.pdf', 
-    width = 8, height = 5)
-boxplot(t(harvest.value),
-        ylab = "Number harvested",
-        xaxt = "n",
-        xlab = "Year",
-        #ylim = c(0.7,1.2),
-        outline = FALSE)
-axis(side = 1, at = 1:nyr.proj)
-#abline(h = 1, col = 2, lty = 1)
-dev.off()
-
 
