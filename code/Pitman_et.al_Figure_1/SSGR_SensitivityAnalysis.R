@@ -27,7 +27,7 @@ param[1] <- 0.4610291
 ## number of monte carlo samples
 nreps <- 1000
 ## number of projection years
-nyr.proj <- 50
+nyr.proj <- 60
 
 ## matrix of paramter values
 params <- matrix(param,nrow=length(param),ncol=nreps)  
@@ -50,7 +50,7 @@ x.initial <- c(nc  = 14,
                m72 = 3,
                m84 = 9)
 
-x.initial.multiplier <- c(1, 2, 3, 4, 5, 10, 15, 20)
+x.initial.multiplier <- c(1, 10, 20, 60)
 
 # population projection array
 x <- array(NA,dim=c(length(x.initial.multiplier), length(x.initial),nreps,nyr.proj))
@@ -161,8 +161,10 @@ par(bg = NA)
 pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Sensitivity.pdf', 
     width = 8, height = 5)
 
+xlabels <- c("0", "10", "20", "30", "40", "50")
+
 pop.size.sensitivity <- 
-  ggplot(x.tot) + 
+  ggplot(subset(x.tot, year > 10)) + 
   geom_line(aes(year, value, col = as.factor(multiplier)), linetype = "solid") +
   xlab("Year\n") + ylab("Population size\n") +
   theme_bw() + theme(strip.background = element_rect(fill = "white")) +
@@ -174,12 +176,15 @@ pop.size.sensitivity <-
     axis.title = element_text(size = 14),
     strip.text.x = element_text(size = 14)
   ) +
+  
+  scale_x_continuous(labels = xlabels) +
+
+  
   #theme(legend.position = c(.5, .5)) +
   theme(legend.title = element_blank()) +
   theme(legend.key = element_rect(colour = NA)) +
   scale_colour_grey() +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 0.8))
-
 
 pop.size.sensitivity
 

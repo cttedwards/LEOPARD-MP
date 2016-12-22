@@ -46,7 +46,7 @@ param[1] <- 0.4520594
 ## number of monte carlo samples
 nreps <- 1000
 ## number of projection years
-nyr.proj <- 50
+nyr.proj <- 60
 
 # query objects
 eigen.value <- matrix(ncol = nreps, nrow = nyr.proj)
@@ -88,7 +88,7 @@ x.initial <- c(nc  = 14,
 #m72 = 1,
 #m84 = 2)
 
-x.initial <- x.initial * 15 
+x.initial <- x.initial * 64 
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
@@ -151,6 +151,9 @@ for (i in 1:nreps) {
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills + removals$noncompliance@kills + removals$aging_error@kills
     
+    # run initialisation
+    source('initialisation.r')
+    
     # add recovery years
     #source('two.years.recovery.r')
     #source('three.years.recovery.r')
@@ -202,11 +205,11 @@ par(bg = NA)
 #par(bg = "white") 
 cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.5.pdf', 
           width = 8, height = 5)
-boxplot(x.tot,
+boxplot(x.tot[,11:nyr.proj],
         ylab = "Population Size",
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,2000),
+        ylim = c(0,10000),
         outline = FALSE)
 title("Hunting = 100% males \u2265 6 yrs", line = -2)
 axis(side = 1, at = 1:nyr.proj)

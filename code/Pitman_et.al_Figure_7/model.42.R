@@ -24,16 +24,16 @@ prob.ext.func <- function(x){
 }
 
 ###########################################################################################
-# Model.10 Description
+# Model.42 Description
 ###########################################################################################
 
 # Site parameters         - Sabi Sands
-# Harvest scenario        - ≥7 years old males
-# Porportion removed      - 0.91
-# Problem animal control  - NA
-# Non-compliance          - NA
+# Harvest scenario        - ≥ 7 year males
+# Porportion removed      - 0.09 (10 percent)
+# Problem animal control  - 0.00
+# Non-compliance          - 0.00
 # Aging error             - 0.09
-# Recovery years          - 3 years on 3 years off
+# Recovery years          - 1 year on, 5 years off
 
 ###########################################################################################
 # Setup model objects
@@ -96,7 +96,7 @@ dimnames(x) <- list(age.class = names(x.initial),rep = 1:nreps, year = 1:nyr.pro
 x[,,2:nyr.proj] <- NA
 
 # harvest rate
-harvest.rate <- 0.91
+harvest.rate <- 0.09
 
 # setup selectivity object
 selectivity <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -156,7 +156,8 @@ for (i in 1:nreps) {
     
     # add recovery years
     #source('two.years.recovery.r')
-    source('three.years.recovery.r')
+    #source('three.years.recovery.r')
+    source('five.years.recovery.r')
     
     # calculate stochastic survival
     xx <- survival(xx, total.removals)
@@ -188,13 +189,13 @@ dimnames(eigen.value) <- list(year = 1:nyr.proj, iter = 1:nreps)
 
 saver(x,
       eigen.value,
-      name = 'Model.10')
+      name = 'Model.42')
 
 ###########################################################################################
 # Plot
 ###########################################################################################
 
-loader('Model.10')
+loader('Model.42')
 
 # average growth rate
 mean(eigen.value, na.rm = TRUE)
@@ -203,7 +204,7 @@ mean(eigen.value, na.rm = TRUE)
 x.tot <- apply(x, 2:3, sum)
 par(bg = NA) 
 #par(bg = "white") 
-cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.10.pdf', 
+cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.42.pdf', 
           width = 8, height = 5)
 boxplot(x.tot[,11:nyr.proj],
         ylab = "Population Size",
@@ -211,14 +212,14 @@ boxplot(x.tot[,11:nyr.proj],
         xlab = "Year",
         ylim = c(0,10000),
         outline = FALSE)
+title("Hunting = 10% males \u2265 7 yrs; Aging error = 9%;\n Illegal killing = 0%; Problem animal control = 0%;\n Recovery years = 1 yr on, 5 yrs off", line = -4)
 axis(side = 1, at = 1:nyr.proj)
-title("Hunting = 100% males \u2265 7 yrs; Aging error = 9%;\n Recovery years = 3 yrs", line = -3)
 dev.off()
 
 
 par(bg = NA) 
 #par(bg = "white") 
-pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.10.pdf', 
+pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Eigen.Value.Model.42.pdf', 
     width = 8, height = 5)
 boxplot(t(eigen.value),
         ylab = "Eigen value",

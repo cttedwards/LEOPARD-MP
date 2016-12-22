@@ -32,7 +32,7 @@ prob.ext.func <- function(x){
 # Porportion removed      - 0.09 (10 percent)
 # Problem animal control  - 0.00
 # Non-compliance          - 0.00
-# Aging error             - 0.01
+# Aging error             - 0.09
 # Recovery years          - NA
 
 ###########################################################################################
@@ -46,7 +46,7 @@ param[1] <- 0.4520594
 ## number of monte carlo samples
 nreps <- 1000
 ## number of projection years
-nyr.proj <- 50
+nyr.proj <- 60
 
 # query objects
 eigen.value <- matrix(ncol = nreps, nrow = nyr.proj)
@@ -88,7 +88,7 @@ x.initial <- c(nc  = 14,
 #m72 = 1,
 #m84 = 2)
 
-x.initial <- x.initial * 15 
+x.initial <- x.initial * 64 
 
 # population projection array
 x <- array(x.initial,dim=c(length(x.initial),nreps,nyr.proj))
@@ -142,7 +142,7 @@ for (i in 1:nreps) {
     removals <- list(trophy         = list(rate = harvest.rate, preference = selectivity), 
                      problem_animal = list(rate = 0.00),
                      noncompliance  = list(rate = 0.00),
-                     aging_error    = list(rate = 0.01, preference = only.males))
+                     aging_error    = list(rate = 0.09, preference = only.males))
     
     removals <- harvest(xx, removals)
     
@@ -150,6 +150,9 @@ for (i in 1:nreps) {
     #source('incorp.aging.error.final.r')
     
     total.removals <- removals$trophy@kills + removals$problem_animal@kills + removals$noncompliance@kills + removals$aging_error@kills
+    
+    # run initialisation
+    source('initialisation.r')
     
     # add recovery years
     #source('two.years.recovery.r')
@@ -202,13 +205,13 @@ par(bg = NA)
 #par(bg = "white") 
 cairo_pdf(file = '/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/PhD_Chapter3/MSE_Paper/figures/Population.Size.Model.41.pdf', 
           width = 8, height = 5)
-boxplot(x.tot,
+boxplot(x.tot[,11:nyr.proj],
         ylab = "Population Size",
         xaxt = "n",
         xlab = "Year",
-        ylim = c(0,2000),
+        ylim = c(0,10000),
         outline = FALSE)
-title("Hunting = 10% males \u2265 7 yrs; Aging error = 1%;\n Non-compliance = 0%; Problem animal control = 0%", line = -3)
+title("Hunting = 10% males \u2265 7 yrs; Aging error = 9%;\n Illegal killing = 0%; Problem animal control = 0%", line = -3)
 axis(side = 1, at = 1:nyr.proj)
 dev.off()
 
