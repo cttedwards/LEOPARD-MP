@@ -3,7 +3,6 @@
 ###########################################################################################
 
 rm(list = ls())
-setwd("/Users/RossTyzackPitman/Documents/OneDrive/Data/GitHub/Databases/LEOPARD-MP/code")
 
 library(leopard)
 library(ggplot2)
@@ -30,9 +29,6 @@ source('params.R')
 ###########################################################################################
 # Setup model objects
 ###########################################################################################
-
-# unadjusted cub survival
-param[1] <- 0.4520594
 
 # dimensions
 ## number of monte carlo samples
@@ -94,7 +90,8 @@ for (i in 1:nreps) {
   xx <- leopard(numbers        = x.initial, 
                 survival.rates = param.sample[1:14], 
                 litter.sizes   = param.sample[15:19], 
-                deterministic  = FALSE)
+                deterministic  = FALSE,
+                harem.size = 1.14)
   
   # assign multiplicative maternal effects
   xx@maternal.effect[] <- matrix(maternal.effects, nrow = 2, ncol = 5, byrow = T)
@@ -139,9 +136,6 @@ for (i in 1:nreps) {
     # step forward
     xx <- transition(xx)
     
-    # calculate stochastic birth
-    xx <- birth(xx)
-    
     # record numbers
     x[,i,y] <- xx
     
@@ -169,4 +163,15 @@ boxplot(x.tot,
         outline = FALSE)
 title("Hunting = 0%", line = -2)
 axis(side = 1, at = 1:nyr.proj)
+
+boxplot(eigen.value,
+        ylab = "Eigen value",
+        xaxt = "n",
+        xlab = "Year",
+        ylim = c(0,2),
+        outline = FALSE)
+abline(h = 1, col = 2)
+title("Hunting = 0%", line = -2)
+axis(side = 1, at = 1:nyr.proj)
+
 
