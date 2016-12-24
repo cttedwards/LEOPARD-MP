@@ -4,3 +4,4 @@ report
 .Rbuildignore
 .Rproj.user
 code\assessment\*
+code\backup*
