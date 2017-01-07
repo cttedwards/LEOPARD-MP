@@ -1,0 +1,106 @@
+---
+title: "leopard"
+author: "Charles T T Edwards (NIWA, Wellington, New Zealand)"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{leopard}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The `leopard` package
+
+This document outlines the basic instructions for deploying the `leopard` package, which is designed to simulate the dynamics of a hunted leopard population so as to examine the efficacy of alternative hunting strategies. The package comes with associated help documentation that can be accessed in the usual way using `?`. 
+
+```{r}
+library(leopard)
+```
+
+## Basic demographics
+
+First create a new `leopard-class` object which contains the basic demographic information. 
+```{r}
+# survival rates per demographic category
+#ss <- c(0.3270833, 0.7197452, 0.9615385, 0.8882435, 0.9729730, 0.9382353, 0.9230769, 0.7219583, 0.9124424, 0.9642857, 1.0000000, 1.0000000, 0.9000000, 0.2857143)
+ss <- c(0.4610291, 0.7197452, 0.9615385, 0.8882435, 0.9729730, 0.9382353, 0.9230769, 0.7219583, 0.9124424, 0.9642857, 1.0000000, 1.0000000, 0.9000000, 0.2857143)
+
+# litter size per maternal age class
+ll <- c(2, 2, 2, 2, 2)
+
+# initial population numbers
+x.initial <- c(nc  = 406,
+               nj  = 201,
+               saf = 92,
+               f36 = 67,
+               f48 = 63,
+               f60 = 62,
+               f72 = 93,
+               f84 = 469,
+               sam = 39,
+               m36 = 62,
+               m48 = 47,
+               m60 = 78,
+               m72 = 84,
+               m84 = 246)
+
+# create new leopard object
+xx <- leopard(x.initial, survival.rates = ss, litter.sizes = ll)
+
+# examine leopard-class object
+xx
+```
+
+There are a range of functions that then control the demographic steps, the most importanct being birth and death, which are implemented via the `birth` and `survival` functions. These implement stochastic binomial sampling to estimate realised birth and survivorship rates which are then recorded within the object. 
+
+The `birth` function calculates an expected birth rate using the harmonic mean and then samples actual numbers per maternal age class assuming a Poisson process. These are then assigned to the numbers vector. The `survival` function implements a binomial sampling process. In order the estimate cub and juvenile survival, which is dependent on the `maternal.effect` (i.e. survivorship is dependent on the age of the mother), the `survival` function updates the `maternal.birth` slot. This effect can be ignored except for diagnostic purposes. There is also an additional `infanticide` function that applies an additional cub mortality.
+
+```{r}
+yy <- survival(xx)
+yy@realised.survival.rate
+yy <- infanticide(xx)
+yy@realised.survival.rate
+yy@.Data * yy@realised.survival.rate
+```
+
+To apply the calculated survival rates and therefore move the population forward one time step, we use the `transition` function. This function first constructs the transition matrix using `tmatrix` and then performs a matrix multiplication. Note that since birth is dealt with separately, the number of cubs in the new numbers vector is zero.
+```{r}
+yy <- transition(survival(xx))
+yy@.Data
+```
+
+## Hunting
+
+To simulate the effect of hunting requires some addtional classes and functions. The `implementation` function applies a quota value to a `leopard-class` object, including a hunter preference ogive as an argument, and returns a list of `offtake-class` objects. This latter class contains the size of the removals, a vector of realised kills per demographic category, and the waiting time for each sequential kill (see `?implementation` and `?kill`).
+
+```{r}
+implementation(xx, list(trophy = list(size = 50)))
+```
+
+In a more complicated setting we can include multiple offtake scenarios, with an optional preference ogive.
+
+```{r}
+implementation(xx, list(trophy = list(size = 50, preference = "Braczkowski"), problem_animal = list(size = 100)))
+```
+
+To proceed with a simulation we would extract the kills from the object(s) returned by `implementation` and provide them as a single input vector of kills to `survival`.
+
+### Applying a control rule
+
+We can create a control rule using the `control-class`. This class contains some slots which may be useful for keeping track of the implementation. However at the moment the functionality is limited and it may be preferable for the user to create their own, since all that is required for `implementation` is an integer quota that can be output by any arbitrary function. Nevertheless, one could proceed as outlined below.
+
+```{r}
+hcr <- new('control')
+hcr@.Data <- function(x) floor(sum(x * hcr@target_preference) * hcr@target_harvest_rate)
+hcr@target_harvest_rate <- 0.1
+
+hcr(xx)
+```
+
+
+
+

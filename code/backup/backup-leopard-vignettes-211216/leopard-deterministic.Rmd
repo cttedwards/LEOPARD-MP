@@ -1,0 +1,449 @@
+---
+title: "leopard"
+author: "Charles T T Edwards (NIWA, Wellington, New Zealand)"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{leopard-deterministic}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The `leopard` package - deterministic properties
+
+This document outlines the deterministic properties of the `leopard` package.
+
+```{r}
+library(leopard)
+library(reshape2)
+library(ggplot2)
+```
+
+## Initialisation
+
+First define the basic demographic information and dimensions. This involves paramaterisation of the `harem()` function which dynamically calculates the harem size as a function of the sex ratio. Second, we must estimate the cub survival, so that with current estimates of the level of infanticide, cub survival predicted by the model matches empirical observations.
+
+We begin by listing the available empirical data:
+
+```{r}
+# survival rates per demographic category
+ss <- c(0.3270833, 0.7197452, 0.9615385, 0.8882435, 0.9729730, 0.9382353, 0.9230769, 0.7219583, 0.9124424, 0.9642857, 1.0000000, 1.0000000, 0.9000000, 0.2857143)
+
+# initial population numbers
+nn <- c(nc  = 14,
+        nj  = 7,
+        saf = 3,
+        f36 = 2,
+        f48 = 2,
+        f60 = 2,
+        f72 = 3,
+        f84 = 17,
+        sam = 1,
+        m36 = 2,
+        m48 = 2,
+        m60 = 3,
+        m72 = 3,
+        m84 = 9)
+```
+
+
+### Harem size
+
+We must paramaterise the harem size function using available empirical data, in this case from the Sabi Sands nature conservancy in South Africa.
+
+```{r}
+# numbers (mature)
+nfemales <- sum(nn[4:8])
+nmales   <- sum(nn[10:14])
+# current known harem size and sex ratio
+hsize <- 1.14
+sratio <- nmales / nfemales
+# proportion of females breeding
+(pfbreed <- sratio * hsize)
+```
+
+We assume that all males breed and all females in a harem breed. The probability that a female breeds can be calculated so that `nfemales * pfbreed == nmales * hsize`. Using the values above only `r round(pfbreed * 100)`% the females are currently breeding. To make this probability responsive to changes in the population, we propose using the following functional relationship between `pfbreed` and the sex ratio
+```{r}
+pfb <- function(sr, beta) 1 - exp(-beta * sr)
+```
+and use a simple minimisation routine to fit this to the above data.
+
+```{r, echo = FALSE}
+pfbreed.ff <- function(sratio) {
+    
+    obj <- function(par) {
+        (pfbreed - pfb(beta = par, sr = sratio))^2 + (0 - pfb(beta = par, sr = 0))^2 
+    }
+    
+    hat <- optimize(obj, interval = c(-100, 100))$minimum
+    
+    return(list(pfb = pfb(hat, sratio), beta = hat))
+}
+
+# checks
+#pfbreed.ff(sratio)[['pfb']]          # == pfbreed = 0.749
+#(1/sratio) * pfbreed.ff(sratio)[['pfb']] # == hsize = 1.14
+
+# hat value
+betahat <- pfbreed.ff(sratio)[['beta']]
+```
+This gives an estimated `beta` value of `r round(betahat,2)`. The relationship between the harem size and the sex ratio is
+```{r}
+hsz <- function(sr, beta) (1 / sr) * pfb(sr, beta)
+```
+Both of these relationships are plotted below, with the solid red lines indicating the empirical data. These accord well with our intuition that if there is a higher proportion of males in the population relative to females, we would expect the probability of a female breeding to increase, and the average harem size to be smaller.
+
+```{r, fig.width = 7, echo = FALSE}
+sr.seq <- seq(0, 2, length = 101)
+
+par(mfrow = c(1, 2))
+plot(range(sr.seq), c(0, 1.1), type = 'n', main = 'Probability of female breeding', xlab = 'Sex ratio (M:F)', ylab = '')
+lines(sr.seq, pfb(sr.seq, betahat), lty = 1)
+abline(v = sratio, col = 2); abline(h = pfbreed, col = 2, lty = 2)
+
+plot(range(sr.seq), c(0, 3), type = 'n', main = 'Harem size', xlab = 'Sex ratio (M:F)', ylab = '')
+lines(sr.seq, hsz(sr.seq, betahat), lty = 1)
+abline(v = sratio, col = 2); abline(h = hsize, col = 2)
+```
+
+### Infanticide and cub survival
+
+To estimate the level of cub survival that would be expected in the absence of infanticide, we must first describe the process of infanticide itself. We begin with an harmonic mean function to describe the number of encounters between males and female harems:
+```{r}
+# encounter rate per harem
+ecr <- function(nm, nf, beta) {
+    
+    hs <- hsz(nm / nf, beta)
+    
+    nh <- nf / hs
+    
+    2 * nm / (nm + nh)
+}
+```
+The probability of infanticide is the probability of both a male dieing (assuming all males occupy a harem) and there being a post-mortality encounter event with another male:
+```{r}
+# p infanticide = p encounter * p male dieing
+pin <- function(sm, nm, sf, nf, beta) {
+    
+    # probability of encounter following
+    # male mortality
+    ec <- ecr(sm * nm, sf * nf, beta)
+    
+    # probability of mortality
+    # and encounter
+    (1 - sm) * ec
+}
+```
+```{r, echo = FALSE}
+# set up data frame with a range of 
+# realistic sex ratios
+dfr    <- expand.grid(nm = seq(0, 100, by = 1), nf = seq(0, 100, by = 1))
+dfr    <- subset(dfr, nm > 0 & nf > 0)
+dfr$sr <- dfr$nm / dfr$nf
+dfr    <- dfr[order(dfr$sr),]
+dfr    <- subset(dfr, sr < 2)
+
+# average survival
+smales   <- sum(ss[10:14] * nn[10:14]) / sum(nn[10:14])
+dfr$sm   <- smales
+sfemales <- sum(ss[4:8] * nn[4:8]) / sum(nn[4:8])
+dfr$sf   <- sfemales
+
+# encounter rate
+dfr$ec <- ecr(dfr$sm * dfr$nm, dfr$sf * dfr$nf, betahat)
+
+# infanticide probability
+dfr$pi <- pin(dfr$sm, dfr$nm, dfr$sf, dfr$nf, betahat)
+```
+
+The relationship between the sex ratio and the probability of infanticide is plotted below, with the red lines again indicating the empirical values.
+
+```{r, echo = FALSE, fig.width = 7}
+par(mfrow = c(1, 2))
+plot(ec~sr, dfr, type = 'l', main = "Encounter probability", xlab = 'Sex ratio (M:F)', ylab = '', ylim = c(0,1))
+abline(v = sratio, col = 2); abline(h = ecr(smales * 19, sfemales * 26, betahat), col = 2, lty = 2)
+
+plot(pi~sr, dfr, type = 'l', main = "Probability of infanticide", xlab = 'Sex ratio (M:F)', ylab = '', ylim = c(0,1))
+abline(v = sratio, col = 2); abline(h = pin(smales, 19, sfemales, 26, betahat), col = 2, lty = 2)
+```
+
+To calculate cub survival we want to calculate a value of `csurv` such that `csurv * (1 - pin(...))` equals the observed value of `r round(ss[1],2)`.
+```{r}
+csurv <- ss[1] / (1 - pin(sm = smales, nm = nmales, sf = sfemales, nf = nfemales, beta = betahat))
+```
+We then update our survivorship vector `r ss1 <- ss[1]`
+```{r} 
+ss[1] <- csurv
+```
+
+
+### The `leopard` object
+
+Given our updated cub survival and paramaterisation of the harem size fuction, we can now initialise the `leopard` object. To begin with, we initialise a deterministic obejct:
+
+```{r}
+xx <- leopard(nn, survival.rates = ss, litter.sizes = 2, deterministic = TRUE, harem.size.par = betahat)
+```
+We can then examine the harem size, which should match the empirical value of `r hsize`: 
+```{r}
+harem(xx)@harem.size
+```
+and the survival rates when there is no harvest, which should match the empirically observed values `ss`, with the exception of `ss[1]`. 
+```{r}
+survival(xx)@realised.survival.rate
+```
+The cub survival with infanticide should be close to the empirically observed value of `r round(ss1,3)`.
+```{r}
+infanticide(survival(xx))@realised.survival.rate[1]
+```
+For the stochastic version of the model:
+```{r}
+xx <- leopard(nn, survival.rates = ss, litter.sizes = 2, deterministic = FALSE, harem.size.par = betahat)
+```
+since suvivial is now represented by a stochastic process, we need to iterate the calcuation of cub survival following infanticide, which gives the histogram of values:
+
+```{r, echo = FALSE, fig.width=6}
+simulated.survival <- numeric(1e3)
+for (i in 1:length(simulated.survival)) 
+    simulated.survival[i] <- infanticide(survival(xx))@realised.survival.rate[1]
+
+hist(simulated.survival, prob = TRUE)
+abline(v = ss1, col = 2)
+```
+
+# Dynamic properties
+
+We next iterate the population forward under different harvesting scenarios. In particular we focus on the changes in cub survival and harem size.
+
+First we plot the cub survival and harem size dynamics with no harvesting:
+
+```{r, echo = FALSE, fig.width = 7}
+# results vectors
+hsize.proj <- csurv.proj <-  numeric(50)
+
+# initialise
+xx <- leopard(nn, survival.rates = ss, litter.sizes = 2, deterministic = TRUE, harem.size.par = betahat)
+
+xx <- survival(xx)
+xx <- infanticide(xx)
+
+hsize.proj[1] <- xx@harem.size
+csurv.proj[1] <- xx@realised.survival.rate[1]
+
+xx <- transition(xx)
+
+# project forward to adjust numbers
+for (j in 2:50) {
+    
+    xx <- birth(xx)
+    
+    xx <- survival(xx)
+    xx <- infanticide(xx)
+    
+    # record harem size
+    # and cub survival
+    hsize.proj[j] <- xx@harem.size
+    csurv.proj[j] <- xx@realised.survival.rate[1]
+        
+    xx <- transition(xx)
+    
+}
+
+# plot median probability of infanticide
+dfr <- rbind(data.frame(year = 1:50, label = "Harem size", value = hsize.proj, model = "Non-equ.\nstart"), data.frame(year = 1:50, label = "Cub surivival", value = csurv.proj, model = "Non-equ.\nstart"))
+ggplot(dfr) + geom_line(aes(year, value, col = model)) + facet_grid(label~., scales = "free_y") + labs(y = '', x = 'Time', col = '')
+
+nn <- xx@.Data
+nfemales <- sum(nn[4:8])
+nmales   <- sum(nn[10:14])
+sratio.proj <- nmales / nfemales
+pfbreed <- sratio.proj * hsize
+```
+
+After 50 years the harem size is `r round(xx@harem.size,2)` and the cub survival has gone from `r round(csurv.proj[1],3)` to `r round(csurv.proj[50],3)`. The sex ratio has gone from `r round(sratio,2)` to `r round(sratio.proj,2)` and the probability of a female breeding is now `r round(pfbreed,2)`. We can update the harem size function so that the expected harem size is back at `r hsize`. This gives a new `betahat` value of `r betahat <- pfbreed.ff(sratio.proj)[['beta']]; round(betahat,2)`.
+
+```{r}
+xx@harem.size.par <- betahat
+harem(xx)@harem.size
+```
+
+We can similarly recalculate the cub survival so that it matches the empirical value of `r round(ss1,3)` under the new infanticide conditions. If we wish to assume that the population was at equilibrium at the beginning of the projection period, we can iterate the projection and recalculation of `betahat` and `ss[1]` until the population is stable when projected forward:
+
+```{r, echo = FALSE, fig.width = 7}
+for (i in 1:20) {
+    
+    # calculate betahat
+    nn <- xx@.Data
+    nfemales <- sum(nn[4:8])
+    nmales   <- sum(nn[10:14])
+    sratio.proj <- nmales / nfemales
+    pfbreed <- sratio.proj * hsize
+    
+    betahat <- pfbreed.ff(sratio.proj)[['beta']]
+    
+    xx@harem.size.par <- betahat
+    
+    # add cub survival recalculation
+    # cub survival
+    smales   <- sum(ss[10:14] * nn[10:14]) / sum(nn[10:14])
+    sfemales <- sum(ss[4:8] * nn[4:8]) / sum(nn[4:8])
+    
+    xx@expected.survival.rate[1] <- ss1 / (1 - pin(sm = smales, nm = nmales, sf = sfemales, nf = nfemales, beta = betahat))
+    
+    # new iteration
+    
+    xx <- birth(xx)
+    xx <- survival(xx)
+    xx <- infanticide(xx)
+    
+    hsize.proj[1] <- xx@harem.size
+    csurv.proj[1] <- xx@realised.survival.rate[1]
+    
+    xx <- transition(xx)
+    
+    # project forward to adjust numbers
+    for (j in 2:50) {
+        
+        xx <- birth(xx)
+        
+        xx <- survival(xx)
+        xx <- infanticide(xx)
+        
+        # record harem size
+        # and cub survival
+        hsize.proj[j] <- xx@harem.size
+        csurv.proj[j] <- xx@realised.survival.rate[1]
+            
+        xx <- transition(xx)
+        
+    }
+}
+
+# plot median probability of infanticide
+dfr <- rbind(dfr, data.frame(year = 1:50, label = "Harem size", value = hsize.proj, model = "Equ.\nstart"), data.frame(year = 1:50, label = "Cub surivival", value = csurv.proj, model = "Equ.\nstart"))
+ggplot(dfr) + geom_line(aes(year, value, col = model)) + facet_grid(label~., scales = "free_y") + labs(y = '', x = 'Time', col = '')
+
+```
+This type of initialistion procedure might be desirable for interpreting the impact of different harvest scenarios, and we use it here to illustrate the consequences of increased harvest rates on the number of births and cub survival.
+
+Cub survival is dependent on the number of adult males and the adult male survival. If there are a large number of males that die frequently, then infanticide rates will be high and cub survival will be low. Conversely, if there are either few males or they have high survivorship, infanticide rates will be low. 
+
+```{r, warning=FALSE}
+harvest.rate <- seq(0, 0.4, length = 5)
+selectivity  <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+
+n.births <- array(0, dim = c(length(harvest.rate), 50))
+cub.surv <- array(0, dim = c(length(harvest.rate), 50))
+
+# loop over harvest rates
+for (i in 1:length(harvest.rate)) {
+    
+    # re-initialise
+    yy <- xx
+    
+    yy <- birth(yy)
+    yy <- survival(yy)
+    yy <- infanticide(yy)
+    
+    n.births[i, 1] <- yy[1]
+    cub.surv[i, 1] <- yy@realised.survival.rate[1]
+    
+    yy <- transition(yy)
+    
+    # project forward to adjust numbers
+    for (j in 2:50) {
+        
+        yy <- birth(yy)
+        
+        # kill individuals
+        yy[10:14] <- yy[10:14] - yy[10:14] * harvest.rate[i]
+        
+        yy <- survival(yy)
+        yy <- infanticide(yy)
+        
+        # record probability of infanticide
+        # and cub survival
+        n.births[i, j] <- yy[1]
+        cub.surv[i, j] <- yy@realised.survival.rate[1]
+            
+        yy <- transition(yy)
+        
+    }
+}
+```
+```{r, fig.width=6, echo = FALSE}
+# plot median probability of infanticide
+dimnames(n.births) <- list(H = harvest.rate, Year = 1:50)
+ggplot(melt(n.births)) + geom_line(aes(Year, value, col = as.factor(H))) + 
+    ggtitle('Number of births per year') + labs(y = '', col = 'Harvest\nRate')
+
+# plot median cub survivorship
+dimnames(cub.surv) <- list(H = harvest.rate, Year = 1:50)
+ggplot(melt(cub.surv)) + geom_line(aes(Year, value, col = as.factor(H))) + 
+    ggtitle('Expected cub survival') + labs(y = '', col = 'Harvest\nRate')
+```
+
+The response of the population to harvesting will depend on the current sex ratio and the relationship between the sex ratio, the harem size and consequent birth rates and levels of infanticide. In this example, increased harvest rates lead to a decrease in the birth rate, but an increase in cub survival (decrease in infanticide). We can illustrate the converse scenario by simulating the immigration of males into the population, rather than their removal via harvesting, which gives the opposite result:
+
+```{r, echo = FALSE, fig.width=6, warning=FALSE}
+harvest.rate <- seq(0.4, 0.0, length = 5)
+selectivity  <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+
+n.births <- array(0, dim = c(length(harvest.rate), 50))
+cub.surv <- array(0, dim = c(length(harvest.rate), 50))
+
+# loop over harvest rates
+for (i in 1:length(harvest.rate)) {
+    
+    # re-initialise
+    yy <- xx
+    
+    yy <- birth(yy)
+    yy <- survival(yy)
+    yy <- infanticide(yy)
+    
+    n.births[i, 1] <- yy[1]
+    cub.surv[i, 1] <- yy@realised.survival.rate[1]
+    
+    yy <- transition(yy)
+    
+    # project forward to adjust numbers
+    for (j in 2:50) {
+        
+        yy <- birth(yy)
+        
+        # kill individuals
+        yy[10:14] <- yy[10:14] + yy[10:14] * harvest.rate[i]
+        
+        yy <- survival(yy)
+        yy <- infanticide(yy)
+        
+        # record probability of infanticide
+        # and cub survival
+        n.births[i, j] <- yy[1]
+        cub.surv[i, j] <- yy@realised.survival.rate[1]
+            
+        yy <- transition(yy)
+        
+    }
+}
+
+# plot median probability of infanticide
+dimnames(n.births) <- list(H = harvest.rate, Year = 1:50)
+ggplot(melt(n.births)) + geom_line(aes(Year, value, col = as.factor(H))) + 
+    ggtitle('Number of births per year') + labs(y = '', col = 'Immigration\nRate')
+
+# plot median cub survivorship
+dimnames(cub.surv) <- list(H = harvest.rate, Year = 1:50)
+ggplot(melt(cub.surv)) + geom_line(aes(Year, value, col = as.factor(H))) + 
+    ggtitle('Expected cub survival') + labs(y = '', col = 'Harvest\nRate')
+```
+
+
+
