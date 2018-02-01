@@ -1,6 +1,6 @@
 
 # get data
-sabi.surv <- read.csv("C:/RESEARCH/LEOPARD-MP/data/sabi.surv.csv")
+sabi.surv <- read.csv("H:/RESEARCH/LEOPARD-MP/data/sabi.surv.csv")
 
 dat <- data.frame(time1 = sabi.surv$AGE.START.MONTHS, time2 = sabi.surv$AGE.DEATH.MONTHS, event = sabi.surv$CENSUS.STATUS)
 
